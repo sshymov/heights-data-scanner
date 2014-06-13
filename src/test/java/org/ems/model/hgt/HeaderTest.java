@@ -1,18 +1,19 @@
-package org.ems.tests.io.hgt;
+package org.ems.model.hgt;
 
 import org.junit.Test;
-import org.ems.model.hgt.Header;
 
 import java.text.ParseException;
 
-import junit.framework.TestCase;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 
 /**
  * User: Stas Shimov <stas.shimov@gmail.com>
  * Date: Oct 15, 2007
  * Time: 2:20:35 AM
  */
-public class HeaderTest extends TestCase {
+public class HeaderTest {
 
     @Test
     public void testHeaderCreation() {
