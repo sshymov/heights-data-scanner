@@ -1,0 +1,9 @@
+.classpath
+.project
+.metadata
+doc
+lib
+target
+ElevationMapScanner.*
+*.png
+*.kml
