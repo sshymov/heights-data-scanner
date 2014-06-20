@@ -28,10 +28,13 @@ public class HeaderTest {
         } catch (ParseException e) {
             fail("Should parse Ok, problem:"+e.getMessage());
         }
-        //       N00E072.hgt.zip    S10W158.hgt.zip  	
 
         try {
-            new Header("N48E030.dem",2884802L);
+            Header h=new Header("S48W030.dem",2884802L);
+            assertEquals("S",h.getCoordinate().getLatitude().getHemisphereAsString());
+            assertEquals("W",h.getCoordinate().getLongitude().getHemisphereAsString());
+            assertEquals(48,h.getCoordinate().getLatitude().getDegrees());
+            assertEquals(30,h.getCoordinate().getLongitude().getDegrees());
         } catch (ParseException e) {
             fail("Should parse Ok, problem:"+e.getMessage());
         }

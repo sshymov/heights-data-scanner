@@ -13,7 +13,7 @@ public abstract class GeoDimention {
     public enum Hemisphere {
         North, South, East, West;
 
-        String getShort() {
+        public String getShort() {
             return name().substring(0, 1);
         }
 
@@ -43,7 +43,7 @@ public abstract class GeoDimention {
     }
 
     public int getDegrees() {
-        return value.intValue();
+        return value.abs().intValue();
     }
 
 

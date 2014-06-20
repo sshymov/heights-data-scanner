@@ -13,6 +13,7 @@ import org.ems.model.Coordinate;
  * Time: 3:36:49 PM
  */
 public class HGT {
+    public static final int DEFAULT_DATA_MATRIX_SIDE_LENGTH = 1201;
     private int[][] heightsMatrix;
     private Header header;
 
@@ -24,6 +25,13 @@ public class HGT {
         try (FileInputStream fis = new FileInputStream(source)) {
             hgt.fill(fis);
         }
+        return hgt;
+    }
+
+    public static HGT create(Coordinate coordinate, InputStream inputStream) throws IOException {
+        Header header = new Header(DEFAULT_DATA_MATRIX_SIDE_LENGTH, DEFAULT_DATA_MATRIX_SIDE_LENGTH, coordinate);
+        HGT hgt = new HGT(header);
+        hgt.fill(inputStream);
         return hgt;
     }
 

@@ -9,7 +9,7 @@ import java.util.Map;
 /**
  * Created by stas on 6/11/14.
  */
-public class KmlBuilder {
+public class KmlBuilder implements OutputFormatBuilder {
     private StringBuilder stringBuilder=new StringBuilder();
     public KmlBuilder() {
         stringBuilder.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
@@ -26,6 +26,7 @@ public class KmlBuilder {
                 "      </IconStyle>\n" +
                 "    </Style>");
     }
+    @Override
     public KmlBuilder addDirection(Direction direction, Map<Coordinate, Integer> coordinates) {
         stringBuilder.append("<Folder>\n" +
                 "<name>"+direction.getTitle()+"</name>\n" +
@@ -46,6 +47,7 @@ public class KmlBuilder {
         return this;
     }
 
+    @Override
     public String build() {
         stringBuilder.append("  </Document>\n" +
                 "</kml>");

@@ -22,6 +22,10 @@ public class Coordinate {
         this.latitude = latitude;
         this.longitude = longitude;
     }
+    public Coordinate(int longitude, int latitude) {
+        this.latitude = new Latitude(latitude);
+        this.longitude = new Longitude(longitude);
+    }
 
 
     public Latitude getLatitude() {
