@@ -31,7 +31,7 @@ public abstract class GeoDimention {
         int maxValue = length / 2;
         int minValue = -maxValue;
         if (value.intValue() > maxValue || value.intValue() < minValue)
-            throw new IllegalArgumentException("Coordinate value is out of range");
+            throw new IllegalArgumentException("GeoCoordinate value is out of range");
         this.value = value;
     }
 

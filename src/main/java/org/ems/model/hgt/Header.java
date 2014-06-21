@@ -1,6 +1,6 @@
 package org.ems.model.hgt;
 
-import org.ems.model.Coordinate;
+import org.ems.model.GeoCoordinate;
 import org.ems.model.Latitude;
 import org.ems.model.Longitude;
 
@@ -17,26 +17,22 @@ import java.util.regex.Matcher;
 public class Header {
     private int width;
     private int height;
-    private Coordinate coordinate; // left bottom point of matrix
+    private GeoCoordinate coordinate; // left bottom point of matrix
     private static final String FILENAME_FORMAT = ".*([NS])(\\d\\d)([EW])(\\d\\d\\d).*";
 
 
     public Header() {
     }
 
-    public Header(int width, int height, Coordinate coordinate) {
-        this.width = width;
-        this.height = height;
+    public Header(long size, GeoCoordinate coordinate) {
+        initDimension(size);
         this.coordinate = coordinate;
     }
 
     public Header(String filename, long size) throws ParseException, IllegalArgumentException {
         if (filename == null)
             throw new IllegalArgumentException("File name and size can not be null");
-        long aspect = Math.round(Math.sqrt(size / 2));
-        if (size % 2 > 0 || size/2!=Math.pow(aspect,2))
-            throw new IllegalArgumentException("File size is wrong");
-        width = height = (int) aspect;
+        initDimension(size);
 
         Pattern fileRE = Pattern.compile(FILENAME_FORMAT, Pattern.CASE_INSENSITIVE);
         Matcher matcher = fileRE.matcher(filename);
@@ -45,7 +41,14 @@ public class Header {
 
         Latitude lat = new Latitude((matcher.group(1).equalsIgnoreCase("N") ? 1 : -1) * Double.parseDouble(matcher.group(2)));
         Longitude lon = new Longitude((matcher.group(3).equalsIgnoreCase("E") ? 1.0 : -1.0) * Double.parseDouble(matcher.group(4)));
-        coordinate = new Coordinate(lon, lat);
+        coordinate = new GeoCoordinate(lon, lat);
+    }
+
+    private void initDimension(long size) {
+        long aspect = Math.round(Math.sqrt(size / 2));
+        if (size % 2 > 0 || size/2!=Math.pow(aspect,2))
+            throw new IllegalArgumentException("File size is wrong");
+        width = height = (int) aspect;
     }
 
 
@@ -65,11 +68,11 @@ public class Header {
         this.height = height;
     }
 
-    public Coordinate getCoordinate() {
+    public GeoCoordinate getCoordinate() {
         return coordinate;
     }
 
-    public void setCoordinate(Coordinate coordinate) {
+    public void setCoordinate(GeoCoordinate coordinate) {
         this.coordinate = coordinate;
     }
 }

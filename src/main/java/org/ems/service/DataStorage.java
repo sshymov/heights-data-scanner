@@ -1,20 +1,28 @@
 package org.ems.service;
 
+import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
+import org.apache.commons.compress.archivers.zip.ZipFile;
+import org.apache.commons.compress.compressors.CompressorException;
+import org.apache.commons.compress.compressors.CompressorInputStream;
+import org.apache.commons.compress.compressors.CompressorOutputStream;
+import org.apache.commons.compress.compressors.CompressorStreamFactory;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.ems.model.Coordinate;
+import org.ems.model.GeoCoordinate;
 import org.ems.model.hgt.HGT;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 
 /**
  * Created by stas on 6/20/14.
@@ -22,15 +30,17 @@ import java.nio.file.Paths;
 public class DataStorage {
     public static final String DATA_LOCATION_URL = "http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/Eurasia/";
 
-    public HGT get(Coordinate coordinate) throws IOException, ArchiveException {
+    public HGT get(GeoCoordinate coordinate) throws IOException, CompressorException {
         File file = downloadAndCache(coordinate);
-        try (ArchiveInputStream input = new ArchiveStreamFactory()
-                .createArchiveInputStream(Files.newInputStream(file.toPath()))) {
-            return HGT.create(coordinate, input);
+        try (ZipFile zipFile = new ZipFile(file)) {
+            ZipArchiveEntry zipArchiveEntry = zipFile.getEntries().nextElement();
+            try (InputStream is = zipFile.getInputStream(zipArchiveEntry)) {
+                return HGT.create(coordinate, zipArchiveEntry.getSize(), is);
+            }
         }
     }
 
-    private static File downloadAndCache(Coordinate coordinate) throws IOException {
+    private static File downloadAndCache(GeoCoordinate coordinate) throws IOException {
         File heightsDataDir = new File(System.getProperty("user.home") + "/.heightsDataDir");
         if (!heightsDataDir.exists()) {
             heightsDataDir.mkdir();

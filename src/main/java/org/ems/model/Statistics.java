@@ -3,15 +3,15 @@ package org.ems.model;
 public class Statistics {
     private int minHeight;
     private int maxHeight;
-    private Coordinate minHeightCoordinate;
-    private Coordinate maxHeightCoordinate;
+    private GeoCoordinate minHeightCoordinate;
+    private GeoCoordinate maxHeightCoordinate;
     private long heightSum;
     private int pointsNum;
     private int maxDiff;
     private long diffSum;
     private int pointsDiffNum;
 
-    public void addHeight(int height, Coordinate coordinate) {
+    public void addHeight(int height, GeoCoordinate coordinate) {
         if (height>maxHeight) {
             maxHeightCoordinate=coordinate;
             maxHeight=height;
@@ -53,11 +53,11 @@ public class Statistics {
         return maxHeight;
     }
 
-    public Coordinate getMinHeightCoordinate() {
+    public GeoCoordinate getMinHeightCoordinate() {
         return minHeightCoordinate;
     }
 
-    public Coordinate getMaxHeightCoordinate() {
+    public GeoCoordinate getMaxHeightCoordinate() {
         return maxHeightCoordinate;
     }
 }

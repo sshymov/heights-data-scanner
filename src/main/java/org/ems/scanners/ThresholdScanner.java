@@ -1,6 +1,7 @@
 package org.ems.scanners;
 
-import org.ems.model.Coordinate;
+import com.google.common.base.Function;
+import org.ems.model.MatrixCoordinate;
 import org.ems.model.Statistics;
 import org.ems.model.hgt.HGT;
 
@@ -58,12 +59,12 @@ public class ThresholdScanner {
         return statistics;
     }
 
-    public Map<Coordinate, Integer> scan(int pointsNumber, int threshold, Direction direction) {
-        Coordinate cellCoordinate=hgt.getHeader().getCoordinate();
-        Map<Coordinate, Integer> results = new HashMap<>();
+    public <T> Map<T, Integer> scan(int pointsNumber, int threshold, Direction direction, Function<MatrixCoordinate,T> converter) {
+//        GeoCoordinate cellCoordinate=hgt.getHeader().getCoordinate();
+        Map<T, Integer> results = new HashMap<>();
         int sum;
-        for (int r = 1; r < diffed.length; r++)
-            for (int c = 1; c < diffed[r].length; c++) {
+        for (int r = 0; r < diffed.length; r++)
+            for (int c = 0; c < diffed[r].length; c++) {
                 sum=0;
                 for (int i=0; i<pointsNumber;i++) {
                     int ri = r + direction.getRowShift() * i;
@@ -76,8 +77,8 @@ public class ThresholdScanner {
                     }
                 }
                 if (sum>threshold) {
-                    Coordinate coordinate = cellCoordinate.shift(1.0 * c / (diffed[r].length-1), 1.0-1.0 * r / (diffed.length - 1));
-                    results.put(coordinate, sum);
+
+                    results.put(converter.apply(new MatrixCoordinate(c, r)), sum);
                 }
             }
         return results;

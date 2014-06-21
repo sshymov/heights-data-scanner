@@ -1,6 +1,6 @@
 package org.ems.scanners;
 
-import org.ems.model.Coordinate;
+import org.ems.model.GeoCoordinate;
 import org.ems.model.hgt.HGT;
 
 import java.util.List;
@@ -13,7 +13,7 @@ import java.util.Map;
  */
 public interface IScanner {
 
-    List<Coordinate> scan(HGT hgt, int threshold);
+    List<GeoCoordinate> scan(HGT hgt, int threshold);
 
 
     Map<Direction,Integer> processPoint(int x, int y, int[][] matrix);

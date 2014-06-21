@@ -1,15 +1,15 @@
 package org.ems.visualize;
 
-import org.ems.model.Coordinate;
 import org.ems.scanners.Direction;
 
+import java.io.IOException;
 import java.util.Map;
 
 /**
  * Created by stas on 6/20/14.
  */
-public interface OutputFormatBuilder {
-    KmlBuilder addDirection(Direction direction, Map<Coordinate, Integer> coordinates);
+public interface OutputFormatBuilder<T> {
+    void addDirection(Direction direction, Map<T, Integer> coordinates);
 
-    String build();
+    void build(String outputFileName) throws IOException;
 }

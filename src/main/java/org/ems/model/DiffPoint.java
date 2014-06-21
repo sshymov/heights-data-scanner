@@ -10,11 +10,11 @@ import java.util.Map;
  * Date: Sep 27, 2008
  * Time: 4:04:28 PM
  */
-public class DiffPoint extends Coordinate {
+public class DiffPoint extends GeoCoordinate {
     
     private Map<Direction,Integer> directionsAltitudeMap=new LinkedHashMap<Direction,Integer>();
 
-    public DiffPoint(Coordinate coordinate) {
+    public DiffPoint(GeoCoordinate coordinate) {
         super(coordinate);
     }
 

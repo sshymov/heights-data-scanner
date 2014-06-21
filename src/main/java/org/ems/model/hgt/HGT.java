@@ -5,7 +5,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.ems.model.Coordinate;
+import org.ems.model.GeoCoordinate;
 
 /**
  * User: Stas Shimov <stas.shimov@gmail.com>
@@ -13,7 +13,6 @@ import org.ems.model.Coordinate;
  * Time: 3:36:49 PM
  */
 public class HGT {
-    public static final int DEFAULT_DATA_MATRIX_SIDE_LENGTH = 1201;
     private int[][] heightsMatrix;
     private Header header;
 
@@ -28,8 +27,8 @@ public class HGT {
         return hgt;
     }
 
-    public static HGT create(Coordinate coordinate, InputStream inputStream) throws IOException {
-        Header header = new Header(DEFAULT_DATA_MATRIX_SIDE_LENGTH, DEFAULT_DATA_MATRIX_SIDE_LENGTH, coordinate);
+    public static HGT create(GeoCoordinate coordinate, long size, InputStream inputStream) throws IOException {
+        Header header = new Header(size, coordinate);
         HGT hgt = new HGT(header);
         hgt.fill(inputStream);
         return hgt;
@@ -44,9 +43,14 @@ public class HGT {
         byte[] rowBuf = new byte[header.getWidth() * 2];
         for (int row = 0; row < header.getHeight(); row++) {
 
-            int len = istream.read(rowBuf, 0, header.getWidth() * 2);
+            int len =0 ;
+            int offset=0;
+            do {
+            len= istream.read(rowBuf, offset, header.getWidth() * 2-offset);
+                offset+=len;
+            } while(len>0) ;
 
-            if (len != header.getWidth() * 2)
+            if (offset != header.getWidth() * 2)
                 throw new IOException("Unexpected end of HGT file");
 
             for (int col = 0; col < header.getWidth(); col++) {
@@ -56,8 +60,9 @@ public class HGT {
 
     }
 
-    public Coordinate calcCoordinateForCell(int x, int y) {
-        return getHeader().getCoordinate().shift(1.0 * x / header.getWidth(), 1.0 - 1.0 * y / header.getHeight());
+    public GeoCoordinate calcCoordinateForCell(int x, int y) {
+        return getHeader().getCoordinate().shift(1.0 * x / (header.getWidth()-1),
+                1.0 - 1.0 * y / (header.getHeight()-1));
     }
 
     public int[][] getHeightsMatrix() {

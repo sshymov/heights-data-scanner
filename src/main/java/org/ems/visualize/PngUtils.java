@@ -1,9 +1,6 @@
 package org.ems.visualize;
 
-import ar.com.hjg.pngj.ImageInfo;
-import ar.com.hjg.pngj.ImageLineHelper;
-import ar.com.hjg.pngj.ImageLineInt;
-import ar.com.hjg.pngj.PngWriter;
+import ar.com.hjg.pngj.*;
 import ar.com.hjg.pngj.chunks.PngChunkTextVar;
 
 import java.io.File;
@@ -25,7 +22,7 @@ public class PngUtils {
             // add some optional metadata (chunks)
             png.getMetadata().setDpi(100.0);
             png.getMetadata().setTimeNow(0); // 0 seconds fron now = now
-            for (int row = 0; row < png.imgInfo.rows; row++) {
+            for (int row = 0; row < imi.rows; row++) {
                 ImageLineInt iline = new ImageLineInt(imi);
                 for (int col = 0; col < imi.cols; col++) {
                     if (matrix[row][col] > 0) {
@@ -39,10 +36,11 @@ public class PngUtils {
                         int b = 128-matrix[row][col];
                         ImageLineHelper.setPixelRGB8(iline, col, r, g, b); // orange-ish gradient
                     }
-
+                    png.writeRow(iline);
                 }
-                png.writeRow(iline);
             }
+
+
             png.end();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
