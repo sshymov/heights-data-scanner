@@ -11,4 +11,9 @@ public class RGB {
         this.green = green;
         this.blue = blue;
     }
+
+    @Override
+    public String toString() {
+        return String.format("%02X%02X%02X", red, green, blue);
+    }
 }

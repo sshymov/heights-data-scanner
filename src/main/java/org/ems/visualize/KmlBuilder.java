@@ -19,14 +19,18 @@ public class KmlBuilder implements OutputFormatBuilder<GeoCoordinate> {
                 "  <Document>\n" +
                 "    <name>Heights</name>\n" +
                 "    <open>1</open>\n" +
-                "      \n" +
-                "    <Style id=\"downArrowIcon\">\n" +
-                "      <IconStyle>\n" +
-                "        <Icon>\n" +
-                "          <href>http://maps.google.com/mapfiles/kml/pal4/icon28.png</href>\n" +
-                "        </Icon>\n" +
-                "      </IconStyle>\n" +
-                "    </Style>");
+                "      \n"
+);
+        for (Direction direction : Direction.values()) {
+            stringBuilder.append(                "    <Style id=\"downArrowIcon"+direction.name()+"\">\n" +
+                    "      <IconStyle>\n" +
+                    "        <color>ff"+direction.getRgbColor()+"</color>\n" +
+                    "        <Icon>\n" +
+                    "          <href>http://maps.google.com/mapfiles/kml/pal4/icon28.png</href>\n" +
+                    "        </Icon>\n" +
+                    "      </IconStyle>\n" +
+                    "    </Style>");
+        }
     }
     @Override
     public void addDirection(Direction direction, Map<GeoCoordinate, Integer> coordinates) {
@@ -36,8 +40,8 @@ public class KmlBuilder implements OutputFormatBuilder<GeoCoordinate> {
         for (Map.Entry<GeoCoordinate, Integer> entry : coordinates.entrySet()) {
             stringBuilder.append("\n      <Placemark>\n" +
                     "        <name>"+direction.getTitle()+" "+entry.getValue()+"m</name>\n" +
-                    "        <visibility>0</visibility>\n" +
-                    "        <styleUrl>#downArrowIcon</styleUrl>\n" +
+                    "        <visibility>1</visibility>\n" +
+                    "        <styleUrl>#downArrowIcon"+direction.name()+"</styleUrl>\n" +
                     "        <Point>\n" +
                     "          <extrude>1</extrude>\n" +
                     "          <altitudeMode>relativeToGround</altitudeMode>\n" +
