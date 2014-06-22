@@ -59,14 +59,13 @@ public class ThresholdScanner {
         return statistics;
     }
 
-    public <T> Map<T, Integer> scan(int pointsNumber, int threshold, Direction direction, Function<MatrixCoordinate,T> converter) {
-//        GeoCoordinate cellCoordinate=hgt.getHeader().getCoordinate();
+    public <T> Map<T, Integer> scan(int pointsNumber, int threshold, Direction direction, Function<MatrixCoordinate, T> converter) {
         Map<T, Integer> results = new HashMap<>();
         int sum;
         for (int r = 0; r < diffed.length; r++)
             for (int c = 0; c < diffed[r].length; c++) {
-                sum=0;
-                for (int i=0; i<pointsNumber;i++) {
+                sum = 0;
+                for (int i = 0; i < pointsNumber; i++) {
                     int ri = r + direction.getRowShift() * i;
                     int ci = c + direction.getColShift() * i;
                     if (ri >= 0 && ci >= 0 && ci < diffed[r].length && ri < diffed.length) {
@@ -76,7 +75,40 @@ public class ThresholdScanner {
                         }
                     }
                 }
-                if (sum>threshold) {
+                if (sum > threshold) {
+
+                    results.put(converter.apply(new MatrixCoordinate(c, r)), sum);
+                }
+            }
+        return results;
+    }
+
+    public <T> Map<T, Integer> scanNotFixed(int averageRate, int threshold, Direction direction, Function<MatrixCoordinate, T> converter) {
+        if (direction.getDiagonalRatio()) {
+            averageRate=(int) Math.round(averageRate * Math.sqrt(2)); //28
+        }
+
+        Map<T, Integer> results = new HashMap<>();
+        int sum;
+        for (int r = 0; r < diffed.length; r++)
+            for (int c = 0; c < diffed[r].length; c++) {
+                sum = 0;
+                for (int i = 0; ; i++) {
+                    int ri = r + direction.getRowShift() * i;
+                    int ci = c + direction.getColShift() * i;
+                    if (ri >= 0 && ci >= 0 && ci < diffed[r].length && ri < diffed.length) {
+                        int pointHeight = diffed[ri][ci];
+                        if (pointHeight != VOID_VALUE) {
+//                            pointHeight = (int) Math.round(pointHeight / direction.getDiagonalRatio());
+                            if (i==0 || (sum + pointHeight) / (i + 1) > averageRate) {
+                                sum += pointHeight;
+                                continue;
+                            }
+                        }
+                    }
+                    break;
+                }
+                if (sum > threshold) {
 
                     results.put(converter.apply(new MatrixCoordinate(c, r)), sum);
                 }

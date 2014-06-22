@@ -13,11 +13,11 @@ import java.util.Map;
  */
 public class KmlBuilder implements OutputFormatBuilder<GeoCoordinate> {
     private StringBuilder stringBuilder=new StringBuilder();
-    public KmlBuilder() {
+    public KmlBuilder(String title) {
         stringBuilder.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
                 "<kml xmlns=\"http://www.opengis.net/kml/2.2\">\n" +
                 "  <Document>\n" +
-                "    <name>Heights</name>\n" +
+                "    <name>"+title+"</name>\n" +
                 "    <open>1</open>\n" +
                 "      \n"
 );

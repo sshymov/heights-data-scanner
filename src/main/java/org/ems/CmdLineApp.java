@@ -54,6 +54,7 @@ public class CmdLineApp {
         }
 
 
+        System.out.println("Getting data...");
         final HGT hgt = new DataStorage().get(new GeoCoordinate(app.longitude, app.latitude));
         if (hgt == null) return;
 
@@ -62,7 +63,7 @@ public class CmdLineApp {
         OutputFormatBuilder outputFormatBuilder;
         Function<MatrixCoordinate, ?> converter;
         if (app.format == OutputFormat.KML) {
-            outputFormatBuilder = new KmlBuilder();
+            outputFormatBuilder = new KmlBuilder("Heights for "+hgt.getHeader().getCoordinate().toString());
             converter = new Function<MatrixCoordinate, GeoCoordinate>() {
 
                 @Override
@@ -81,13 +82,16 @@ public class CmdLineApp {
             };
         }
 
+        System.out.println("Scanning...");
         for (Direction direction : Direction.values()) {
             Statistics stat = scanner.diffForDirection(direction);
-            Map<?, Integer> scanResults = scanner.scan(3, 70, direction, converter);
+            Map<?, Integer> scanResults = scanner.scanNotFixed(20, 65, direction, converter);
             outputFormatBuilder.addDirection(direction, scanResults);
         }
+        System.out.println("Writting...");
 
         outputFormatBuilder.build(app.outputFileName);
+        System.out.println("Done");
     }
 
 

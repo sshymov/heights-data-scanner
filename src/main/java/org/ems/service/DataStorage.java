@@ -64,7 +64,7 @@ public class DataStorage {
                 }
             }
         }
-        System.out.println(heightsDataFile);
+//        System.out.println(heightsDataFile);
         return heightsDataFile;
     }
 }

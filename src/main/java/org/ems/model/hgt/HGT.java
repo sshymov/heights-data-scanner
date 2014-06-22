@@ -61,8 +61,8 @@ public class HGT {
     }
 
     public GeoCoordinate calcCoordinateForCell(int x, int y) {
-        return getHeader().getCoordinate().shift(1.0 * x / (header.getWidth()-1),
-                1.0 - 1.0 * y / (header.getHeight()-1));
+        return getHeader().getCoordinate().shift(1.0 * x / (header.getWidth()-2),
+                1.0 - 1.0 * y / (header.getHeight()-2));
     }
 
     public int[][] getHeightsMatrix() {
