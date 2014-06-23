@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.ems.model.GeoCoordinate;
 
 /**
@@ -32,6 +33,17 @@ public class HGT {
         HGT hgt = new HGT(header);
         hgt.fill(inputStream);
         return hgt;
+    }
+
+    @VisibleForTesting
+    public static HGT create(GeoCoordinate coordinate, int[][] heightsMatrix) throws IOException {
+        HGT hgt = new HGT();
+        hgt.header = new Header(2*heightsMatrix.length*heightsMatrix.length, coordinate);
+        hgt.heightsMatrix=heightsMatrix;
+        return hgt;
+    }
+
+    private HGT() {
     }
 
     protected HGT(Header header) {

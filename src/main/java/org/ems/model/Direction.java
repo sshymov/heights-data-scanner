@@ -1,15 +1,9 @@
-package org.ems.scanners;
+package org.ems.model;
 
 import org.ems.model.RGB;
-import sun.plugin.dom.css.RGBColor;
 
 /**
  * Created by stas on 25.05.14.
- * start index 1st cicle, 2nd cicle
- * N 1 0 m[k][t]-m[k-1][t]
- * S 1 0 m[k][t]-m[k+1][t])
- * E 0 1 m[k][t]-m[a][1]
- * W 0 1 m[k][t]-m[a][1]
  */
 public enum Direction {
     N("North", -1, 0, new RGB(255, 0, 0), false),

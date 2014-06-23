@@ -1,5 +1,6 @@
 package org.ems.scanners;
 
+import org.ems.model.Direction;
 import org.ems.model.GeoCoordinate;
 import org.ems.model.hgt.HGT;
 

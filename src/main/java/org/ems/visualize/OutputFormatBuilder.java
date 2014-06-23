@@ -1,6 +1,6 @@
 package org.ems.visualize;
 
-import org.ems.scanners.Direction;
+import org.ems.model.Direction;
 
 import java.io.IOException;
 import java.util.Map;

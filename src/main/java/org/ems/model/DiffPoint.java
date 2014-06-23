@@ -1,7 +1,5 @@
 package org.ems.model;
 
-import org.ems.scanners.Direction;
-
 import java.util.LinkedHashMap;
 import java.util.Map;
 

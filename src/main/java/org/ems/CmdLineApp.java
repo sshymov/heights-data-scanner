@@ -7,13 +7,14 @@ import org.ems.model.GeoCoordinate;
 import org.ems.model.MatrixCoordinate;
 import org.ems.model.Statistics;
 import org.ems.model.hgt.HGT;
-import org.ems.scanners.Direction;
+import org.ems.model.Direction;
 import org.ems.scanners.ThresholdScanner;
 import org.ems.service.DataStorage;
 import org.ems.visualize.KmlBuilder;
 import org.ems.visualize.OutputFormatBuilder;
 import org.ems.visualize.PngBuilder;
 import org.kohsuke.args4j.Argument;
+import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 
@@ -45,7 +46,7 @@ public class CmdLineApp {
         try {
 
             cmdLineParser.parseArgument(args);
-        } catch (Exception e) {
+        } catch (CmdLineException e) {
             System.err.println(e.getMessage());
             System.err.println("java " + app.getClass().getSimpleName() + " [options...] <outputfile>");
             cmdLineParser.printUsage(System.err);
@@ -58,7 +59,7 @@ public class CmdLineApp {
         final HGT hgt = new DataStorage().get(new GeoCoordinate(app.longitude, app.latitude));
         if (hgt == null) return;
 
-        ThresholdScanner scanner = new ThresholdScanner(hgt); //meters
+        ThresholdScanner scanner = new ThresholdScanner(); //meters
 
         OutputFormatBuilder outputFormatBuilder;
         Function<MatrixCoordinate, ?> converter;
@@ -84,7 +85,7 @@ public class CmdLineApp {
 
         System.out.println("Scanning...");
         for (Direction direction : Direction.values()) {
-            Statistics stat = scanner.diffForDirection(direction);
+            Statistics stat = scanner.diffForDirection(direction, hgt);
             Map<?, Integer> scanResults = scanner.scanNotFixed(20, 65, direction, converter);
             outputFormatBuilder.addDirection(direction, scanResults);
         }

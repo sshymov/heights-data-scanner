@@ -1,6 +1,7 @@
 package org.ems.scanners;
 
 import com.google.common.base.Function;
+import org.ems.model.Direction;
 import org.ems.model.MatrixCoordinate;
 import org.ems.model.Statistics;
 import org.ems.model.hgt.HGT;
@@ -15,31 +16,11 @@ import java.util.*;
 public class ThresholdScanner {
     public static final int VOID_VALUE = -32768;
     private int[][] diffed;
-    private HGT hgt;
 
-    public ThresholdScanner(HGT hgt) {
-        this.hgt = hgt;
+    public ThresholdScanner() {
     }
 
-//    public Map<Direction,Integer> processPoint(int x, int y, int[][] matrix, int threshold) {
-//        int centre=matrix[y][x];
-//        if (centre==VOID_VALUE) {
-//            System.out.println("Void data detected skipping");
-//            return null;
-//        }
-//        Map<Direction,Integer> result=new LinkedHashMap<Direction,Integer>();
-//        for (Direction dir : Direction.values()) {
-//            if (matrix[y+dir.getY()][x+dir.getX()]==VOID_VALUE)
-//                continue;
-//            int diff=centre-matrix[y+dir.getY()][x+dir.getX()];
-//            if (diff>threshold) {
-//                result.put(dir,diff);
-//            }
-//        }
-//        return (result.size()>0)?result:null;
-//    }
-
-    public Statistics diffForDirection(Direction dir) {
+    public Statistics diffForDirection(Direction dir, HGT hgt) {
         int[][] matrix = hgt.getHeightsMatrix();
         //TODO: make matrix 1 longer (not -2)
         diffed = new int[matrix.length - 2][matrix[0].length - 2];
@@ -99,8 +80,7 @@ public class ThresholdScanner {
                     if (ri >= 0 && ci >= 0 && ci < diffed[r].length && ri < diffed.length) {
                         int pointHeight = diffed[ri][ci];
                         if (pointHeight != VOID_VALUE) {
-//                            pointHeight = (int) Math.round(pointHeight / direction.getDiagonalRatio());
-                            if (i==0 || (sum + pointHeight) / (i + 1) > averageRate) {
+                            if (i==0 || (sum + pointHeight) / (i + 1) >= averageRate) {
                                 sum += pointHeight;
                                 continue;
                             }
@@ -108,8 +88,7 @@ public class ThresholdScanner {
                     }
                     break;
                 }
-                if (sum > threshold) {
-
+                if (sum >= threshold) {
                     results.put(converter.apply(new MatrixCoordinate(c, r)), sum);
                 }
             }

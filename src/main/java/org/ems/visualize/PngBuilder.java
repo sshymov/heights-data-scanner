@@ -4,10 +4,9 @@ import ar.com.hjg.pngj.ImageInfo;
 import ar.com.hjg.pngj.ImageLineHelper;
 import ar.com.hjg.pngj.ImageLineInt;
 import ar.com.hjg.pngj.PngWriter;
-import org.ems.model.GeoCoordinate;
 import org.ems.model.MatrixCoordinate;
 import org.ems.model.RGB;
-import org.ems.scanners.Direction;
+import org.ems.model.Direction;
 
 import java.io.FileOutputStream;
 import java.io.IOException;

@@ -7,3 +7,4 @@ target
 ElevationMapScanner.*
 *.png
 *.kml
+.idea
