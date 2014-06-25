@@ -31,12 +31,16 @@ public class CmdLineApp {
         KML, PNG
     }
 
-    @Option(name = "-lat", required = true, usage = "Latitude value, e.g.: 47")
+    @Option(name = "-lat", required = true, usage = "Latitude value, e.g.: 47 or 45-47")
     private int latitude;
-    @Option(name = "-lon", required = true, usage = "Longitude value, e.g.: 30")
+    @Option(name = "-lon", required = true, usage = "Longitude value, e.g.: 30 or 29-33")
     private int longitude;
     @Option(name = "-format", required = true, usage = "Output format")
     private OutputFormat format = OutputFormat.KML;
+    @Option(name = "-min-steepness", usage = "Minimal steepness of hill in meters")
+    private int minSteepness = 20;
+    @Option(name = "-min-height", usage = "Minimal height of the hill in meters")
+    private int minHeight = 70;
     @Argument(required = true)
     private String outputFileName;
 
@@ -86,10 +90,10 @@ public class CmdLineApp {
         System.out.println("Scanning...");
         for (Direction direction : Direction.values()) {
             Statistics stat = scanner.diffForDirection(direction, hgt);
-            Map<?, Integer> scanResults = scanner.scanNotFixed(20, 65, direction, converter);
+            Map<?, Integer> scanResults = scanner.scanNotFixed(app.minSteepness, app.minHeight, direction, converter);
             outputFormatBuilder.addDirection(direction, scanResults);
         }
-        System.out.println("Writting...");
+        System.out.println("Writing...");
 
         outputFormatBuilder.build(app.outputFileName);
         System.out.println("Done");
