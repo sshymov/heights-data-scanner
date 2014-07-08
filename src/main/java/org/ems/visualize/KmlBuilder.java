@@ -1,7 +1,10 @@
 package org.ems.visualize;
 
+import com.google.common.base.Function;
 import org.ems.model.GeoCoordinate;
 import org.ems.model.Direction;
+import org.ems.model.MatrixCoordinate;
+import org.ems.model.hgt.HGT;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -12,8 +15,11 @@ import java.util.Map;
  * Created by stas on 6/11/14.
  */
 public class KmlBuilder implements OutputFormatBuilder<GeoCoordinate> {
+    private final String outputName;
     private StringBuilder stringBuilder=new StringBuilder();
-    public KmlBuilder(String title) {
+    public KmlBuilder(String title, String outputName) {
+        this.outputName=outputName;
+
         stringBuilder.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
                 "<kml xmlns=\"http://www.opengis.net/kml/2.2\">\n" +
                 "  <Document>\n" +
@@ -53,9 +59,23 @@ public class KmlBuilder implements OutputFormatBuilder<GeoCoordinate> {
     }
 
     @Override
-    public void build(String outputFileName) throws IOException {
+    public void build() throws IOException {
         stringBuilder.append("  </Document>\n" +
                 "</kml>");
-         Files.write(Paths.get(outputFileName), stringBuilder.toString().getBytes());
+         Files.write(Paths.get(outputName), stringBuilder.toString().getBytes());
+    }
+
+    @Override
+    public void startCoordinate(HGT coordinate, Function<MatrixCoordinate, ?> converter) {
+        stringBuilder.append("<Folder>\n" +
+                "<name>"+coordinate.getHeader().getCoordinate()+"</name>\n" +
+                "<visibility>1</visibility>");
+
+    }
+
+    @Override
+    public void endCoordinate() {
+        stringBuilder.append("</Folder>");
+
     }
 }

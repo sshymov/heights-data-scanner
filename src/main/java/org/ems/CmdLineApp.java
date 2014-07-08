@@ -1,13 +1,12 @@
 package org.ems;
 
+import java.io.IOException;
 import java.util.Map;
 
 import com.google.common.base.Function;
-import org.ems.model.GeoCoordinate;
-import org.ems.model.MatrixCoordinate;
-import org.ems.model.Statistics;
+import org.apache.commons.compress.compressors.CompressorException;
+import org.ems.model.*;
 import org.ems.model.hgt.HGT;
-import org.ems.model.Direction;
 import org.ems.scanners.ThresholdScanner;
 import org.ems.service.DataStorage;
 import org.ems.visualize.KmlBuilder;
@@ -32,9 +31,9 @@ public class CmdLineApp {
     }
 
     @Option(name = "-lat", required = true, usage = "Latitude value, e.g.: 47 or 45-47")
-    private int latitude;
+    private String latitude;
     @Option(name = "-lon", required = true, usage = "Longitude value, e.g.: 30 or 29-33")
-    private int longitude;
+    private String longitude;
     @Option(name = "-format", required = true, usage = "Output format")
     private OutputFormat format = OutputFormat.KML;
     @Option(name = "-min-steepness", usage = "Minimal steepness of hill in meters")
@@ -58,17 +57,68 @@ public class CmdLineApp {
             System.exit(1);
         }
 
+        OutputFormatBuilder outputFormatBuilder;
+        if (app.format == OutputFormat.KML) {
+            outputFormatBuilder = new KmlBuilder(String.format("Scan for minSteepness=%d and minHeight=%d", app.minSteepness, app.minHeight), app.outputFileName);
+        } else {
+            outputFormatBuilder = new PngBuilder(app.outputFileName);
+        }
 
-        System.out.println("Getting data...");
-        final HGT hgt = new DataStorage().get(new GeoCoordinate(app.longitude, app.latitude));
-        if (hgt == null) return;
+        Range<Integer> latRange = parseRange(app.latitude);
+        Range<Integer> lonRange = parseRange(app.longitude);
+        for (int longitude = lonRange.getFrom(); longitude <= lonRange.getTo(); longitude++) {
+            for (int latitude = latRange.getFrom(); latitude <= latRange.getTo(); latitude++) {
+                processCoordinate(new GeoCoordinate(longitude, latitude), app, outputFormatBuilder);
+            }
+        }
+        outputFormatBuilder.build();
+        System.out.println("Done");
+    }
+
+    private static Range<Integer> parseRange(String longitude) {
+        if (longitude == null || longitude.trim().isEmpty()) {
+            throw new IllegalArgumentException("coordinate must not be empty");
+        }
+        String[] split = longitude.split("-");
+        if (split.length > 2) {
+            throw new IllegalArgumentException("coordinate has wrong format");
+        }
+
+        final int from = Integer.parseInt(split[0].trim());
+        final int to = (split.length == 2) ? Integer.parseInt(split[1].trim()) : from;
+        return new Range<>(from, to);
+    }
+
+    private static void processCoordinate(GeoCoordinate coordinate, CmdLineApp app, OutputFormatBuilder outputFormatBuilder) throws IOException, CompressorException {
+        System.out.println("Getting data for " + coordinate + "...");
+        final HGT hgt;
+        try {
+            hgt = new DataStorage().get(coordinate);
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+            System.err.println("Skipping " + coordinate);
+            return;
+        }
 
         ThresholdScanner scanner = new ThresholdScanner(); //meters
+        Function<MatrixCoordinate, ?> converter = getMatrixCoordinateFunction(app, hgt);
+        outputFormatBuilder.startCoordinate(hgt, converter);
 
-        OutputFormatBuilder outputFormatBuilder;
+        System.out.print("Scanning...");
+        for (Direction direction : Direction.values()) {
+            Statistics stat = scanner.diffForDirection(direction, hgt);
+            Map<MatrixCoordinate, Integer> scanResults = scanner.scanNotFixed(app.minSteepness, app.minHeight, direction);
+            outputFormatBuilder.addDirection(direction, scanResults);
+        }
+        outputFormatBuilder.endCoordinate();
+
+        System.out.println("complete");
+
+    }
+
+    private static Function<MatrixCoordinate, ?> getMatrixCoordinateFunction(CmdLineApp app, final HGT hgt) {
         Function<MatrixCoordinate, ?> converter;
         if (app.format == OutputFormat.KML) {
-            outputFormatBuilder = new KmlBuilder("Heights for "+hgt.getHeader().getCoordinate().toString());
             converter = new Function<MatrixCoordinate, GeoCoordinate>() {
 
                 @Override
@@ -76,8 +126,8 @@ public class CmdLineApp {
                     return hgt.calcCoordinateForCell(matrixCoordinate.x, matrixCoordinate.y);
                 }
             };
+
         } else {
-            outputFormatBuilder = new PngBuilder(hgt.getHeightsMatrix());
             converter = new Function<MatrixCoordinate, MatrixCoordinate>() {
 
                 @Override
@@ -86,17 +136,7 @@ public class CmdLineApp {
                 }
             };
         }
-
-        System.out.println("Scanning...");
-        for (Direction direction : Direction.values()) {
-            Statistics stat = scanner.diffForDirection(direction, hgt);
-            Map<?, Integer> scanResults = scanner.scanNotFixed(app.minSteepness, app.minHeight, direction, converter);
-            outputFormatBuilder.addDirection(direction, scanResults);
-        }
-        System.out.println("Writing...");
-
-        outputFormatBuilder.build(app.outputFileName);
-        System.out.println("Done");
+        return converter;
     }
 
 

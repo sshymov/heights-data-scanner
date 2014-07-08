@@ -4,9 +4,12 @@ import ar.com.hjg.pngj.ImageInfo;
 import ar.com.hjg.pngj.ImageLineHelper;
 import ar.com.hjg.pngj.ImageLineInt;
 import ar.com.hjg.pngj.PngWriter;
+import com.google.common.base.Function;
+import org.ems.model.GeoCoordinate;
 import org.ems.model.MatrixCoordinate;
 import org.ems.model.RGB;
 import org.ems.model.Direction;
+import org.ems.model.hgt.HGT;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -19,9 +22,12 @@ import java.util.Map;
 public class PngBuilder implements OutputFormatBuilder<MatrixCoordinate> {
     private int[][] matrix;
     private Map<MatrixCoordinate, RGB> results = new HashMap<>();
+    private Function<MatrixCoordinate, ?> converter;
+    private String outputName;
+    private GeoCoordinate geoCoordinate;
 
-    public PngBuilder(int[][] matrix) {
-        this.matrix = matrix;
+    public PngBuilder(String outputName) {
+        this.outputName = outputName;
     }
 
     @Override
@@ -33,8 +39,25 @@ public class PngBuilder implements OutputFormatBuilder<MatrixCoordinate> {
 
 
     @Override
-    public void build(String outputPng) {
-        try (FileOutputStream fos = new FileOutputStream(outputPng)) {
+    public void build() {
+    }
+
+    private void drawCross(ImageLineInt iline, int col, RGB rgb) {
+        ImageLineHelper.setPixelRGB8(iline, col - 1, rgb.red, rgb.green, rgb.blue);
+        ImageLineHelper.setPixelRGB8(iline, col, rgb.red, rgb.green, rgb.blue);
+        ImageLineHelper.setPixelRGB8(iline, col + 1, rgb.red, rgb.green, rgb.blue);
+    }
+
+    @Override
+    public void startCoordinate(HGT hgt, Function<MatrixCoordinate, ?> converter) {
+        matrix = hgt.getHeightsMatrix();
+        geoCoordinate = hgt.getHeader().getCoordinate();
+        this.converter = converter;
+    }
+
+    @Override
+    public void endCoordinate() {
+        try (FileOutputStream fos = new FileOutputStream(outputName + geoCoordinate + ".png")) {
             ImageInfo imi = new ImageInfo(matrix[0].length, matrix.length, 8, false); // 8 bits per channel, no alpha
             // open image for writing to a output stream
             PngWriter png = new PngWriter(fos, imi);
@@ -49,7 +72,7 @@ public class PngBuilder implements OutputFormatBuilder<MatrixCoordinate> {
                         matrixCoordinate.setValues(col, row);
                         RGB rgb = results.get(matrixCoordinate);
                         if (rgb != null) {
-                            ImageLineHelper.setPixelRGB8(iline, col, rgb.red, rgb.green, rgb.blue); // orange-ish gradient
+                            drawCross(iline, col, rgb);
                         } else {
                             int r = 255 - matrix[row][col];
                             int g = 255 - matrix[row][col];

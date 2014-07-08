@@ -20,6 +20,7 @@ import org.ems.model.GeoCoordinate;
 import org.ems.model.hgt.HGT;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -54,8 +55,7 @@ public class DataStorage {
             try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
                 try (CloseableHttpResponse response1 = httpclient.execute(httpGet)) {
                     if (response1.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_FOUND) {
-                        System.err.println("Can not find file " + cellFileName + " in " + DATA_LOCATION_URL);
-                        System.exit(1);
+                        throw new FileNotFoundException("Can not find file " + cellFileName + " in " + DATA_LOCATION_URL);
                     }
                     Files.copy(response1.getEntity().getContent(), heightsDataFile.toPath());
 

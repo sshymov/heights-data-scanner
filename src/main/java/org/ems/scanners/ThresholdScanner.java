@@ -40,8 +40,8 @@ public class ThresholdScanner {
         return statistics;
     }
 
-    public <T> Map<T, Integer> scan(int pointsNumber, int threshold, Direction direction, Function<MatrixCoordinate, T> converter) {
-        Map<T, Integer> results = new HashMap<>();
+    public Map<MatrixCoordinate, Integer> scan(int pointsNumber, int threshold, Direction direction) {
+        Map<MatrixCoordinate, Integer> results = new HashMap<>();
         int sum;
         for (int r = 0; r < diffed.length; r++)
             for (int c = 0; c < diffed[r].length; c++) {
@@ -58,18 +58,18 @@ public class ThresholdScanner {
                 }
                 if (sum > threshold) {
 
-                    results.put(converter.apply(new MatrixCoordinate(c, r)), sum);
+                    results.put(new MatrixCoordinate(c, r), sum);
                 }
             }
         return results;
     }
 
-    public <T> Map<T, Integer> scanNotFixed(int averageRate, int threshold, Direction direction, Function<MatrixCoordinate, T> converter) {
+    public Map<MatrixCoordinate, Integer> scanNotFixed(int averageRate, int threshold, Direction direction) {
         if (direction.getDiagonalRatio()) {
             averageRate=(int) Math.round(averageRate * Math.sqrt(2)); //28
         }
 
-        Map<T, Integer> results = new HashMap<>();
+        Map<MatrixCoordinate, Integer> results = new HashMap<>();
         int sum;
         for (int r = 0; r < diffed.length; r++)
             for (int c = 0; c < diffed[r].length; c++) {
@@ -89,7 +89,7 @@ public class ThresholdScanner {
                     break;
                 }
                 if (sum >= threshold) {
-                    results.put(converter.apply(new MatrixCoordinate(c, r)), sum);
+                    results.put(new MatrixCoordinate(c+1, r+1), sum);
                 }
             }
         return results;
