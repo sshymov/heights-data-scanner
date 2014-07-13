@@ -13,11 +13,11 @@ import java.util.Map;
  * Created by stas on 6/20/14.
  */
 public interface OutputFormatBuilder<T> {
-    void addDirection(Direction direction, Map<T, Integer> coordinates);
+    void addDirection(Direction direction, Map<MatrixCoordinate, Integer> coordinates);
 
     void build() throws IOException;
 
-    void startCoordinate(HGT coordinate, Function<MatrixCoordinate, ?> converter);
+    void startCoordinate(HGT coordinate, Function<MatrixCoordinate, T> converter);
 
     void endCoordinate();
 }

@@ -36,8 +36,8 @@ public class CmdLineApp {
     private String longitude;
     @Option(name = "-format", required = true, usage = "Output format")
     private OutputFormat format = OutputFormat.KML;
-    @Option(name = "-min-steepness", usage = "Minimal steepness of hill in meters")
-    private int minSteepness = 20;
+    @Option(name = "-min-steepness", usage = "Minimal steepness of hill in degrees from horizontal, e.g. 30")
+    private int minSteepness = 30;
     @Option(name = "-min-height", usage = "Minimal height of the hill in meters")
     private int minHeight = 70;
     @Argument(required = true)
@@ -106,7 +106,7 @@ public class CmdLineApp {
 
         System.out.print("Scanning...");
         for (Direction direction : Direction.values()) {
-            Statistics stat = scanner.diffForDirection(direction, hgt);
+            scanner.diffForDirection(direction, hgt);
             Map<MatrixCoordinate, Integer> scanResults = scanner.scanNotFixed(app.minSteepness, app.minHeight, direction);
             outputFormatBuilder.addDirection(direction, scanResults);
         }

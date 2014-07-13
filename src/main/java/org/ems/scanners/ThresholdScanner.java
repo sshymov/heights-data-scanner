@@ -1,7 +1,7 @@
 package org.ems.scanners;
 
-import com.google.common.base.Function;
 import org.ems.model.Direction;
+import org.ems.model.GeoCoordinate;
 import org.ems.model.MatrixCoordinate;
 import org.ems.model.Statistics;
 import org.ems.model.hgt.HGT;
@@ -16,12 +16,14 @@ import java.util.*;
 public class ThresholdScanner {
     public static final int VOID_VALUE = -32768;
     private int[][] diffed;
+    private double cellLengthMeters;
 
     public ThresholdScanner() {
     }
 
     public Statistics diffForDirection(Direction dir, HGT hgt) {
         int[][] matrix = hgt.getHeightsMatrix();
+        calcCellLengthForDirection(dir, hgt);
         //TODO: make matrix 1 longer (not -2)
         diffed = new int[matrix.length - 2][matrix[0].length - 2];
         Statistics statistics = new Statistics();
@@ -32,66 +34,62 @@ public class ThresholdScanner {
                     diffed[r - 1][c - 1] = VOID_VALUE;
                     continue;
                 }
-                statistics.addHeight(matrix[r][c], hgt.calcCoordinateForCell(c, r));
+//                statistics.addHeight(matrix[r][c], hgt.calcCoordinateForCell(c, r));
                 int currDiff = matrix[r][c] - secondPoint;
-                statistics.addHeightDiff(currDiff);
+//                statistics.addHeightDiff(currDiff);
                 diffed[r - 1][c - 1] = currDiff;
             }
         return statistics;
     }
 
-    public Map<MatrixCoordinate, Integer> scan(int pointsNumber, int threshold, Direction direction) {
-        Map<MatrixCoordinate, Integer> results = new HashMap<>();
-        int sum;
-        for (int r = 0; r < diffed.length; r++)
-            for (int c = 0; c < diffed[r].length; c++) {
-                sum = 0;
-                for (int i = 0; i < pointsNumber; i++) {
-                    int ri = r + direction.getRowShift() * i;
-                    int ci = c + direction.getColShift() * i;
-                    if (ri >= 0 && ci >= 0 && ci < diffed[r].length && ri < diffed.length) {
-                        int pointHeight = diffed[ri][ci];
-                        if (pointHeight != VOID_VALUE) {
-                            sum += pointHeight;
-                        }
-                    }
-                }
-                if (sum > threshold) {
-
-                    results.put(new MatrixCoordinate(c, r), sum);
-                }
-            }
-        return results;
+    private void calcCellLengthForDirection(Direction dir, HGT hgt) {
+        cellLengthMeters = distanceMeters(hgt.getHeader().getCoordinate(),
+                hgt.getHeader().getCoordinate().shift(-Math.abs(dir.getRowShift()), Math.abs(dir.getColShift()))) / hgt.getHeader().getHeight() - 1;
     }
 
-    public Map<MatrixCoordinate, Integer> scanNotFixed(int averageRate, int threshold, Direction direction) {
-        if (direction.getDiagonalRatio()) {
-            averageRate=(int) Math.round(averageRate * Math.sqrt(2)); //28
-        }
+
+    public Map<MatrixCoordinate, Integer> scanNotFixed(int minSteepnessAngle, int threshold, Direction direction) {
+        double thresholdHeight = Math.tan(Math.toRadians(minSteepnessAngle)) * cellLengthMeters;
+//        if (direction.getDiagonalRatio()) {
+//            minSteepnessAngle = (int) Math.round(minSteepnessAngle * Math.sqrt(2)); //28
+//        }
 
         Map<MatrixCoordinate, Integer> results = new HashMap<>();
-        int sum;
+        int heightSum;
         for (int r = 0; r < diffed.length; r++)
             for (int c = 0; c < diffed[r].length; c++) {
-                sum = 0;
+                heightSum = 0;
                 for (int i = 0; ; i++) {
                     int ri = r + direction.getRowShift() * i;
                     int ci = c + direction.getColShift() * i;
                     if (ri >= 0 && ci >= 0 && ci < diffed[r].length && ri < diffed.length) {
                         int pointHeight = diffed[ri][ci];
                         if (pointHeight != VOID_VALUE) {
-                            if (i==0 || (sum + pointHeight) / (i + 1) >= averageRate) {
-                                sum += pointHeight;
+                            if (i == 0 || (heightSum + pointHeight) / (i + 1) >= thresholdHeight) {
+                                heightSum += pointHeight;
                                 continue;
                             }
                         }
                     }
                     break;
                 }
-                if (sum >= threshold) {
-                    results.put(new MatrixCoordinate(c+1, r+1), sum);
+                if (heightSum >= threshold) {
+                    results.put(new MatrixCoordinate(c + 1, r + 1), heightSum);
                 }
             }
         return results;
+    }
+
+    public static long distanceMeters(GeoCoordinate a, GeoCoordinate b) {
+        double earthRadius = 6353000;
+        double dLat = Math.toRadians(b.getLatitude().getValue().subtract(a.getLatitude().getValue()).abs().doubleValue());
+        double dLng = Math.toRadians(b.getLongitude().getValue().subtract(a.getLongitude().getValue()).abs().doubleValue());
+        double sindLat = Math.sin(dLat / 2);
+        double sindLng = Math.sin(dLng / 2);
+        double res = Math.pow(sindLat, 2) + Math.pow(sindLng, 2)
+                * Math.cos(Math.toRadians(a.getLatitude().getValue().doubleValue())) * Math.cos(Math.toRadians(b.getLatitude().getValue().doubleValue()));
+        double c = 2 * Math.atan2(Math.sqrt(res), Math.sqrt(1 - res));
+
+        return Math.round(earthRadius * c);
     }
 }

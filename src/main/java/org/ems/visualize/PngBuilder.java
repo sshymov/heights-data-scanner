@@ -49,7 +49,7 @@ public class PngBuilder implements OutputFormatBuilder<MatrixCoordinate> {
     }
 
     @Override
-    public void startCoordinate(HGT hgt, Function<MatrixCoordinate, ?> converter) {
+    public void startCoordinate(HGT hgt, Function<MatrixCoordinate, MatrixCoordinate> converter) {
         matrix = hgt.getHeightsMatrix();
         geoCoordinate = hgt.getHeader().getCoordinate();
         this.converter = converter;

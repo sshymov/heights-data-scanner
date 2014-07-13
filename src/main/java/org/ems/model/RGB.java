@@ -12,8 +12,8 @@ public class RGB {
         this.blue = blue;
     }
 
-    @Override
-    public String toString() {
-        return String.format("%02X%02X%02X", red, green, blue);
+    public String toKml() {
+        //abgr - kml format
+        return String.format("ff%02X%02X%02X", blue, green, red);
     }
 }
