@@ -51,21 +51,21 @@ public class ThresholdScanner {
 
 
     public Map<MatrixCoordinate, Integer> scanNotFixed(int minSteepnessAngle, int threshold, Direction direction) {
-        double thresholdHeight = Math.tan(Math.toRadians(minSteepnessAngle)) * cellLengthMeters;
-//        System.out.println("dir "+direction+" cell length="+cellLengthMeters+" thresholdHeight="+thresholdHeight);
+        double thresholdSteepness = Math.tan(Math.toRadians(minSteepnessAngle)) * cellLengthMeters;
+//        System.out.println("dir "+direction+" cell length="+cellLengthMeters+" thresholdSteepness="+thresholdSteepness);
 
         Map<MatrixCoordinate, Integer> results = new HashMap<>();
         int heightSum;
         for (int r = 0; r < diffed.length; r++)
             for (int c = 0; c < diffed[0].length; c++) {
                 heightSum = 0;
-                for (int i = 0; ; i++) {
+                for (int i = 1; ; i++) {
                     int ri = r + direction.getRowShift() * i;
                     int ci = c + direction.getColShift() * i;
                     if (isInMatrix(ri, ci)) {
                         int pointHeight = diffed[ri][ci];
                         if (pointHeight != VOID_VALUE) {
-                            if (i == 0 || (heightSum + pointHeight) / (i + 1) >= thresholdHeight) {
+                            if (i == 1 || (heightSum + pointHeight) / i >= thresholdSteepness) {
                                 heightSum += pointHeight;
                                 continue;
                             }
