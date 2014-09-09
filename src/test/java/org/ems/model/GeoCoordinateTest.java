@@ -9,7 +9,7 @@ public class GeoCoordinateTest {
     public void testCoordinateCalculation() {
         GeoCoordinate coordinate = new GeoCoordinate(new Longitude(47.0), new Latitude(30.0));
         Assert.assertEquals("E47.0,N30.0", coordinate.toString());
-        Assert.assertEquals("E48.0,N31.0", coordinate.shift(1.0, 1.0).toString());
+        Assert.assertEquals("E49.0,N31.0", coordinate.shift(2.0, 1.0).toString());
 
         GeoCoordinate coordinate2 = new GeoCoordinate(new Longitude(-147.0), new Latitude(-30.0));
         Assert.assertEquals(coordinate2.toString(), "W147.0,S30.0");

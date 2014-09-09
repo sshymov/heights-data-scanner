@@ -36,7 +36,7 @@ public class CmdLineApp {
     private String longitude;
     @Option(name = "-format", required = true, usage = "Output format")
     private OutputFormat format = OutputFormat.KML;
-    @Option(name = "-min-steepness", usage = "Minimal steepness of hill in degrees from horizontal, e.g. 30")
+    @Option(name = "-min-steepness", usage = "Minimal steepness of a hill in degrees from horizontal, e.g. 30")
     private int minSteepness = 30;
     @Option(name = "-min-height", usage = "Minimal height of the hill in meters")
     private int minHeight = 70;

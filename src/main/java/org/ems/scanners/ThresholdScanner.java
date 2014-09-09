@@ -43,26 +43,26 @@ public class ThresholdScanner {
     }
 
     private void calcCellLengthForDirection(Direction dir, HGT hgt) {
-        cellLengthMeters = distanceMeters(hgt.getHeader().getCoordinate(),
-                hgt.getHeader().getCoordinate().shift(-Math.abs(dir.getRowShift()), Math.abs(dir.getColShift()))) / hgt.getHeader().getHeight() - 1;
+        GeoCoordinate oppositePoint = hgt.getHeader().getCoordinate().shift(Math.abs(dir.getColShift()), Math.abs(dir.getRowShift()));
+        cellLengthMeters = distanceMeters(hgt.getHeader().getCoordinate(),oppositePoint) / (hgt.getHeader().getHeight() - 1);
+//        System.out.println("dir "+dir+" cell from="+hgt.getHeader().getCoordinate()+" to="+oppositePoint);
+//        System.out.println("dir "+dir+" cell length="+cellLengthMeters);
     }
 
 
     public Map<MatrixCoordinate, Integer> scanNotFixed(int minSteepnessAngle, int threshold, Direction direction) {
         double thresholdHeight = Math.tan(Math.toRadians(minSteepnessAngle)) * cellLengthMeters;
-//        if (direction.getDiagonalRatio()) {
-//            minSteepnessAngle = (int) Math.round(minSteepnessAngle * Math.sqrt(2)); //28
-//        }
+//        System.out.println("dir "+direction+" cell length="+cellLengthMeters+" thresholdHeight="+thresholdHeight);
 
         Map<MatrixCoordinate, Integer> results = new HashMap<>();
         int heightSum;
         for (int r = 0; r < diffed.length; r++)
-            for (int c = 0; c < diffed[r].length; c++) {
+            for (int c = 0; c < diffed[0].length; c++) {
                 heightSum = 0;
                 for (int i = 0; ; i++) {
                     int ri = r + direction.getRowShift() * i;
                     int ci = c + direction.getColShift() * i;
-                    if (ri >= 0 && ci >= 0 && ci < diffed[r].length && ri < diffed.length) {
+                    if (isInMatrix(ri, ci)) {
                         int pointHeight = diffed[ri][ci];
                         if (pointHeight != VOID_VALUE) {
                             if (i == 0 || (heightSum + pointHeight) / (i + 1) >= thresholdHeight) {
@@ -74,10 +74,27 @@ public class ThresholdScanner {
                     break;
                 }
                 if (heightSum >= threshold) {
-                    results.put(new MatrixCoordinate(c + 1, r + 1), heightSum);
+
+                    //put new coordinate only if previous in the same direction doesn't exist or is lower then new one
+                    MatrixCoordinate prevCoord = new MatrixCoordinate(c - Math.abs(direction.getColShift()) + 1,
+                            r - Math.abs(direction.getRowShift()) + 1);
+                    Integer prevValue = results.get(prevCoord);
+                    if (prevValue!=null) {
+                        if (prevValue<heightSum) {
+                            results.remove(prevCoord);
+//                            System.out.println("removed for "+direction);
+                            results.put(new MatrixCoordinate(c + 1, r + 1), heightSum);
+                        }
+                    } else {
+                        results.put(new MatrixCoordinate(c + 1, r + 1), heightSum);
+                    }
                 }
             }
         return results;
+    }
+
+    private boolean isInMatrix(int ri, int ci) {
+        return ri >= 0 && ci >= 0 && ci < diffed[0].length && ri < diffed.length;
     }
 
     public static long distanceMeters(GeoCoordinate a, GeoCoordinate b) {

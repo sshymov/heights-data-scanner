@@ -51,7 +51,7 @@ public class KmlBuilder implements OutputFormatBuilder<GeoCoordinate> {
                 "<visibility>0</visibility>");
         for (Map.Entry<MatrixCoordinate, Integer> entry : coordinates.entrySet()) {
             stringBuilder.append("\n      <Placemark>\n" +
-                    "        <name>" + direction.getTitle() + " " + entry.getValue() + "m</name>\n" +
+                    "        <name>" + direction.name() + " " + entry.getValue() + "m</name>\n" +
                     "        <visibility>1</visibility>\n" +
                     "        <styleUrl>#downArrowIcon" + direction.name() + "</styleUrl>\n" +
                     "        <Point>\n" +
