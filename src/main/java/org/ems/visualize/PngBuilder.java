@@ -5,10 +5,7 @@ import ar.com.hjg.pngj.ImageLineHelper;
 import ar.com.hjg.pngj.ImageLineInt;
 import ar.com.hjg.pngj.PngWriter;
 import com.google.common.base.Function;
-import org.ems.model.GeoCoordinate;
-import org.ems.model.MatrixCoordinate;
-import org.ems.model.RGB;
-import org.ems.model.Direction;
+import org.ems.model.*;
 import org.ems.model.hgt.HGT;
 
 import java.io.FileOutputStream;
@@ -31,7 +28,7 @@ public class PngBuilder implements OutputFormatBuilder<MatrixCoordinate> {
     }
 
     @Override
-    public void addDirection(Direction direction, Map<MatrixCoordinate, Integer> coordinates) {
+    public void addDirection(Direction direction, Map<MatrixCoordinate, SlopeInfo> coordinates) {
         for (MatrixCoordinate coordinate : coordinates.keySet()) {
             results.put(coordinate, direction.getRgbColor());
         }

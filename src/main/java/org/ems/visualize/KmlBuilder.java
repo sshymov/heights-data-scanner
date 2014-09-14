@@ -4,6 +4,7 @@ import com.google.common.base.Function;
 import org.ems.model.GeoCoordinate;
 import org.ems.model.Direction;
 import org.ems.model.MatrixCoordinate;
+import org.ems.model.SlopeInfo;
 import org.ems.model.hgt.HGT;
 
 import java.io.IOException;
@@ -30,35 +31,43 @@ public class KmlBuilder implements OutputFormatBuilder<GeoCoordinate> {
                 "      \n"
         );
         for (Direction direction : Direction.values()) {
-            stringBuilder.append("    <Style id=\"downArrowIcon" + direction.name() + "\">\n" +
-                    "      <IconStyle>\n" +
+            stringBuilder.append("    <Style id=\"line" + direction.name() + "\">\n" +
+                    "      <LineStyle>\n" +
                     "        <color>" + direction.getRgbColor().toKml() + "</color>\n" +
-                    "        <Icon>\n" +
-                    "          <href>http://maps.google.com/mapfiles/kml/pal4/icon28.png</href>\n" +
-                    "        </Icon>\n" +
-                    "      </IconStyle>\n" +
-                    "    </Style>");
+                    "        <width>4</width>\n" +
+                    "      </LineStyle>\n" +
+                    "      <PolyStyle>\n" +
+                    "        <color>7f7f7f7f</color>\n" +
+                    "      </PolyStyle>\n" +
+                    "    </Style>\n");
         }
     }
 
     @Override
-    public void addDirection(Direction direction, Map<MatrixCoordinate, Integer> coordinates) {
+    public void addDirection(Direction direction, Map<MatrixCoordinate, SlopeInfo> coordinates) {
         if (coordinates.isEmpty()) {
             return;
         }
         stringBuilder.append("<Folder>\n" +
                 "<name>" + direction.getTitle() + "</name>\n" +
                 "<visibility>0</visibility>");
-        for (Map.Entry<MatrixCoordinate, Integer> entry : coordinates.entrySet()) {
+        for (Map.Entry<MatrixCoordinate, SlopeInfo> entry : coordinates.entrySet()) {
             stringBuilder.append("\n      <Placemark>\n" +
-                    "        <name>" + direction.name() + " " + entry.getValue() + "m</name>\n" +
+                    "        <name>" + direction.name() + ", " + entry.getValue().getElevationGain()
+                    + "m, Avr=" + entry.getValue().getAvg()
+                    + "°, Max=" + entry.getValue().getMax() + "°</name>\n" +
                     "        <visibility>1</visibility>\n" +
-                    "        <styleUrl>#downArrowIcon" + direction.name() + "</styleUrl>\n" +
-                    "        <Point>\n" +
+                    "        <description>" + direction.getTitle() + ", Elevation Gain: " + entry.getValue().getElevationGain() +
+                    "m,\n Average Slope: " + entry.getValue().getAvg() +
+                    "°,\n Maximum Slope: " + entry.getValue().getMax() + "°</description>" +
+                    "        <styleUrl>#line" + direction.name() + "</styleUrl>\n" +
+                    "        <LineString>\n" +
                     "          <extrude>1</extrude>\n" +
+                    "          <tessellate>1</tessellate>\n" +
                     "          <altitudeMode>relativeToGround</altitudeMode>\n" +
-                    "          <coordinates>" + converter.apply(entry.getKey()).toDigitsString() + "," + entry.getValue() + "</coordinates>\n" +
-                    "        </Point>\n" +
+                    "          <coordinates> " + converter.apply(entry.getValue().getFirstPoint()).toDigitsString() + "," + entry.getValue().getElevationGain() + "\n" +
+                    "            " + converter.apply(entry.getKey()).toDigitsString() + ",0 </coordinates>\n" +
+                    "        </LineString>\n"+
                     "      </Placemark>");
         }
         stringBuilder.append("</Folder>");

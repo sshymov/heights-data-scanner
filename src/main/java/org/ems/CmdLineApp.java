@@ -107,7 +107,7 @@ public class CmdLineApp {
         System.out.print("Scanning...");
         for (Direction direction : Direction.values()) {
             scanner.diffForDirection(direction, hgt);
-            Map<MatrixCoordinate, Integer> scanResults = scanner.scanNotFixed(app.minSteepness, app.minHeight, direction);
+            Map<MatrixCoordinate, SlopeInfo> scanResults = scanner.scanNotFixed(app.minSteepness, app.minHeight, direction);
             outputFormatBuilder.addDirection(direction, scanResults);
         }
         outputFormatBuilder.endCoordinate();

@@ -1,9 +1,6 @@
 package org.ems.scanners;
 
-import org.ems.model.Direction;
-import org.ems.model.GeoCoordinate;
-import org.ems.model.MatrixCoordinate;
-import org.ems.model.Statistics;
+import org.ems.model.*;
 import org.ems.model.hgt.HGT;
 
 import java.util.*;
@@ -21,12 +18,11 @@ public class ThresholdScanner {
     public ThresholdScanner() {
     }
 
-    public Statistics diffForDirection(Direction dir, HGT hgt) {
+    public void diffForDirection(Direction dir, HGT hgt) {
         int[][] matrix = hgt.getHeightsMatrix();
         calcCellLengthForDirection(dir, hgt);
         //TODO: make matrix 1 longer (not -2)
         diffed = new int[matrix.length - 2][matrix[0].length - 2];
-        Statistics statistics = new Statistics();
         for (int r = 1; r < matrix.length - 1; r++)
             for (int c = 1; c < matrix[r].length - 1; c++) {
                 int secondPoint = matrix[r + dir.getRowShift()][c + dir.getColShift()];
@@ -34,31 +30,31 @@ public class ThresholdScanner {
                     diffed[r - 1][c - 1] = VOID_VALUE;
                     continue;
                 }
-//                statistics.addHeight(matrix[r][c], hgt.calcCoordinateForCell(c, r));
                 int currDiff = matrix[r][c] - secondPoint;
-//                statistics.addHeightDiff(currDiff);
                 diffed[r - 1][c - 1] = currDiff;
             }
-        return statistics;
     }
 
     private void calcCellLengthForDirection(Direction dir, HGT hgt) {
         GeoCoordinate oppositePoint = hgt.getHeader().getCoordinate().shift(Math.abs(dir.getColShift()), Math.abs(dir.getRowShift()));
         cellLengthMeters = distanceMeters(hgt.getHeader().getCoordinate(),oppositePoint) / (hgt.getHeader().getHeight() - 1);
-//        System.out.println("dir "+dir+" cell from="+hgt.getHeader().getCoordinate()+" to="+oppositePoint);
-//        System.out.println("dir "+dir+" cell length="+cellLengthMeters);
     }
 
 
-    public Map<MatrixCoordinate, Integer> scanNotFixed(int minSteepnessAngle, int threshold, Direction direction) {
+    public Map<MatrixCoordinate, SlopeInfo> scanNotFixed(int minSteepnessAngle, int threshold, Direction direction) {
         double thresholdSteepness = Math.tan(Math.toRadians(minSteepnessAngle)) * cellLengthMeters;
-//        System.out.println("dir "+direction+" cell length="+cellLengthMeters+" thresholdSteepness="+thresholdSteepness);
 
-        Map<MatrixCoordinate, Integer> results = new HashMap<>();
+        Map<MatrixCoordinate, SlopeInfo> results = new HashMap<>();
         int heightSum;
+        int cellNum;
+        int maxSlope;
+        MatrixCoordinate lastCoordinate;
         for (int r = 0; r < diffed.length; r++)
             for (int c = 0; c < diffed[0].length; c++) {
                 heightSum = 0;
+                maxSlope = 0;
+                cellNum = 0;
+                lastCoordinate=null;
                 for (int i = 1; ; i++) {
                     int ri = r + direction.getRowShift() * i;
                     int ci = c + direction.getColShift() * i;
@@ -67,6 +63,9 @@ public class ThresholdScanner {
                         if (pointHeight != VOID_VALUE) {
                             if (i == 1 || (heightSum + pointHeight) / i >= thresholdSteepness) {
                                 heightSum += pointHeight;
+                                maxSlope=Math.max(maxSlope, calcAngle(pointHeight, cellLengthMeters));
+                                cellNum=i;
+                                lastCoordinate = new MatrixCoordinate(ci + direction.getColShift(), ri + direction.getRowShift() );
                                 continue;
                             }
                         }
@@ -76,21 +75,26 @@ public class ThresholdScanner {
                 if (heightSum >= threshold) {
 
                     //put new coordinate only if previous in the same direction doesn't exist or is lower then new one
-                    MatrixCoordinate prevCoord = new MatrixCoordinate(c - Math.abs(direction.getColShift()) + 1,
-                            r - Math.abs(direction.getRowShift()) + 1);
-                    Integer prevValue = results.get(prevCoord);
+                    MatrixCoordinate prevCoord = new MatrixCoordinate(c - Math.abs(direction.getColShift()),
+                            r - Math.abs(direction.getRowShift()));
+                    SlopeInfo prevValue = results.get(prevCoord);
+                    SlopeInfo newSlopeInfo = new SlopeInfo(calcAngle(heightSum, cellNum*cellLengthMeters), maxSlope, heightSum, lastCoordinate);
                     if (prevValue!=null) {
-                        if (prevValue<heightSum) {
+                        if (prevValue.getElevationGain()<heightSum) {
                             results.remove(prevCoord);
 //                            System.out.println("removed for "+direction);
-                            results.put(new MatrixCoordinate(c + 1, r + 1), heightSum);
+                            results.put(new MatrixCoordinate(c, r), newSlopeInfo);
                         }
                     } else {
-                        results.put(new MatrixCoordinate(c + 1, r + 1), heightSum);
+                        results.put(new MatrixCoordinate(c, r), newSlopeInfo);
                     }
                 }
             }
         return results;
+    }
+
+    private int calcAngle(int height, double distance) {
+        return (int)Math.round(Math.toDegrees(Math.atan(height/distance)));
     }
 
     private boolean isInMatrix(int ri, int ci) {
