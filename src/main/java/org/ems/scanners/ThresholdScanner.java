@@ -12,17 +12,25 @@ import java.util.*;
  */
 public class ThresholdScanner {
     public static final int VOID_VALUE = -32768;
+    private final Direction direction;
     private int[][] diffed;
     private double cellLengthMeters;
 
-    public ThresholdScanner() {
+    private ThresholdScanner(Direction dir, int[][] diffed, double cellLengthMeters) {
+        this.direction=dir;
+        this.diffed=diffed;
+        this.cellLengthMeters=cellLengthMeters;
     }
 
-    public void diffForDirection(Direction dir, HGT hgt) {
+    public static ThresholdScanner createScanner(Direction dir, HGT hgt) {
+        return new ThresholdScanner(dir, diffForDirection(dir, hgt), calcCellLengthForDirection(dir, hgt));
+    }
+
+    private static int[][] diffForDirection(Direction dir, HGT hgt) {
         int[][] matrix = hgt.getHeightsMatrix();
-        calcCellLengthForDirection(dir, hgt);
+
         //TODO: make matrix 1 longer (not -2)
-        diffed = new int[matrix.length - 2][matrix[0].length - 2];
+        int[][] diffed = new int[matrix.length - 2][matrix[0].length - 2];
         for (int r = 1; r < matrix.length - 1; r++)
             for (int c = 1; c < matrix[r].length - 1; c++) {
                 int secondPoint = matrix[r + dir.getRowShift()][c + dir.getColShift()];
@@ -33,15 +41,16 @@ public class ThresholdScanner {
                 int currDiff = matrix[r][c] - secondPoint;
                 diffed[r - 1][c - 1] = currDiff;
             }
+        return diffed;
     }
 
-    private void calcCellLengthForDirection(Direction dir, HGT hgt) {
+    private static long calcCellLengthForDirection(Direction dir, HGT hgt) {
         GeoCoordinate oppositePoint = hgt.getHeader().getCoordinate().shift(Math.abs(dir.getColShift()), Math.abs(dir.getRowShift()));
-        cellLengthMeters = distanceMeters(hgt.getHeader().getCoordinate(),oppositePoint) / (hgt.getHeader().getHeight() - 1);
+        return distanceMeters(hgt.getHeader().getCoordinate(),oppositePoint) / (hgt.getHeader().getHeight() - 1);
     }
 
 
-    public Map<MatrixCoordinate, SlopeInfo> scanNotFixed(int minSteepnessAngle, int threshold, Direction direction) {
+    public Map<MatrixCoordinate, SlopeInfo> scan(int minSteepnessAngle, int threshold, Integer minMaxSlope) {
         double thresholdSteepness = Math.tan(Math.toRadians(minSteepnessAngle)) * cellLengthMeters;
 
         Map<MatrixCoordinate, SlopeInfo> results = new HashMap<>();
@@ -72,7 +81,7 @@ public class ThresholdScanner {
                     }
                     break;
                 }
-                if (heightSum >= threshold) {
+                if (heightSum >= threshold && (minMaxSlope==null || maxSlope>=minMaxSlope)) {
 
                     //put new coordinate only if previous in the same direction doesn't exist or is lower then new one
                     MatrixCoordinate prevCoord = new MatrixCoordinate(c - Math.abs(direction.getColShift()),

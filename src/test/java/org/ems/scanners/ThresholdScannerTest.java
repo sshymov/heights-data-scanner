@@ -22,14 +22,14 @@ public class ThresholdScannerTest extends TestCase {
 
         int[][] data = createFilledMatrix(10);
         data[1][1]=70;
-        ThresholdScanner thresholdScanner = new ThresholdScanner();
-        thresholdScanner.diffForDirection(Direction.N, HGT.create(SOME_COORDINATE, data));
-        assertEquals(0,  thresholdScanner.scanNotFixed(20, 61, Direction.N).size());
-        assertEquals(1,  thresholdScanner.scanNotFixed(20, 60, Direction.N).size());
+        HGT hgt = HGT.create(SOME_COORDINATE, data);
+        ThresholdScanner thresholdScanner = ThresholdScanner.createScanner(Direction.N, hgt);
+        assertEquals(0,  thresholdScanner.scan(20, 61, null).size());
+        assertEquals(1,  thresholdScanner.scan(20, 60, null).size());
 
-        thresholdScanner.diffForDirection(Direction.NW, HGT.create(SOME_COORDINATE, data));
-        assertEquals(0, thresholdScanner.scanNotFixed(20, 61, Direction.NW).size());
-        assertEquals(1, thresholdScanner.scanNotFixed(20, 60, Direction.NW).size());
+        thresholdScanner = ThresholdScanner.createScanner(Direction.NW, hgt);
+        assertEquals(0, thresholdScanner.scan(20, 61, null).size());
+        assertEquals(1, thresholdScanner.scan(20, 60, null).size());
     }
 
     @Test
@@ -38,9 +38,8 @@ public class ThresholdScannerTest extends TestCase {
         for (int i = 1; i <= 5; i++) {
             data[i][1] = i * 40;
         }
-        ThresholdScanner thresholdScanner = new ThresholdScanner();
-        thresholdScanner.diffForDirection(Direction.N, HGT.create(SOME_COORDINATE, data));
-        Map<MatrixCoordinate, SlopeInfo> result = thresholdScanner.scanNotFixed(20, 100, Direction.N);
+        ThresholdScanner thresholdScanner = ThresholdScanner.createScanner(Direction.N, HGT.create(SOME_COORDINATE, data));
+        Map<MatrixCoordinate, SlopeInfo> result = thresholdScanner.scan(20, 100, null);
         assertEquals(1, result.size());
         SlopeInfo slopeInfo = result.get(new MatrixCoordinate(0, 5));
         assertNotNull(slopeInfo);

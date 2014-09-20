@@ -34,10 +34,12 @@ public class CmdLineApp {
     private String latitude;
     @Option(name = "-lon", required = true, usage = "Longitude value, e.g.: 30 or 29-33")
     private String longitude;
-    @Option(name = "-format", required = false, usage = "Output format, KML is default")
+    @Option(name = "-format", required = false, usage = "[optional] Output format, KML is default")
     private OutputFormat format = OutputFormat.KML;
-    @Option(name = "-min-steepness", usage = "Minimal steepness of a hill in degrees from horizontal, e.g. 30")
-    private int minSteepness = 30;
+    @Option(name = "-min-avr-steepness", usage = "Minimal average slope in degrees from horizontal, e.g. 20")
+    private int minAvrSlope;
+    @Option(name = "-min-max-steepness", required = false, usage = "[optional] Minimal maximal slope of a segment in degrees from horizontal, e.g. 20")
+    private Integer minMaxSlope;
     @Option(name = "-min-height", usage = "Minimal height of the hill in meters")
     private int minHeight = 70;
     @Argument(required = true)
@@ -59,7 +61,7 @@ public class CmdLineApp {
 
         OutputFormatBuilder outputFormatBuilder;
         if (app.format == OutputFormat.KML) {
-            outputFormatBuilder = new KmlBuilder(String.format("Scan for minSteepness=%d and minHeight=%d", app.minSteepness, app.minHeight), app.outputFileName);
+            outputFormatBuilder = new KmlBuilder(String.format("Scan for minAvrSlope=%d and minHeight=%d", app.minAvrSlope, app.minHeight), app.outputFileName);
         } else {
             outputFormatBuilder = new PngBuilder(app.outputFileName);
         }
@@ -100,14 +102,13 @@ public class CmdLineApp {
             return;
         }
 
-        ThresholdScanner scanner = new ThresholdScanner(); //meters
         Function<MatrixCoordinate, ?> converter = getMatrixCoordinateFunction(app, hgt);
         outputFormatBuilder.startCoordinate(hgt, converter);
 
         System.out.print("Scanning...");
         for (Direction direction : Direction.values()) {
-            scanner.diffForDirection(direction, hgt);
-            Map<MatrixCoordinate, SlopeInfo> scanResults = scanner.scanNotFixed(app.minSteepness, app.minHeight, direction);
+            ThresholdScanner scanner = ThresholdScanner.createScanner(direction, hgt);
+            Map<MatrixCoordinate, SlopeInfo> scanResults = scanner.scan(app.minAvrSlope, app.minHeight, app.minMaxSlope);
             outputFormatBuilder.addDirection(direction, scanResults);
         }
         outputFormatBuilder.endCoordinate();
