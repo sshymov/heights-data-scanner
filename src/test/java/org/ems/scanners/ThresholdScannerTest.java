@@ -21,11 +21,11 @@ public class ThresholdScannerTest extends TestCase {
     public void testDetectOnePointHeight() throws IOException {
 
         int[][] data = createFilledMatrix(10);
-        data[1][1]=70;
+        data[1][1] = 70;
         HGT hgt = HGT.create(SOME_COORDINATE, data);
         ThresholdScanner thresholdScanner = ThresholdScanner.createScanner(Direction.N, hgt);
-        assertEquals(0,  thresholdScanner.scan(20, 61, null).size());
-        assertEquals(1,  thresholdScanner.scan(20, 60, null).size());
+        assertEquals(0, thresholdScanner.scan(20, 61, null).size());
+        assertEquals(1, thresholdScanner.scan(20, 60, null).size());
 
         thresholdScanner = ThresholdScanner.createScanner(Direction.NW, hgt);
         assertEquals(0, thresholdScanner.scan(20, 61, null).size());
@@ -41,7 +41,21 @@ public class ThresholdScannerTest extends TestCase {
         ThresholdScanner thresholdScanner = ThresholdScanner.createScanner(Direction.N, HGT.create(SOME_COORDINATE, data));
         Map<MatrixCoordinate, SlopeInfo> result = thresholdScanner.scan(20, 100, null);
         assertEquals(1, result.size());
-        SlopeInfo slopeInfo = result.get(new MatrixCoordinate(0, 5));
+        SlopeInfo slopeInfo = result.get(new MatrixCoordinate(0, 4));
+        assertNotNull(slopeInfo);
+        assertEquals(5 * 40, slopeInfo.getElevationGain());
+    }
+
+    @Test
+    public void testSequentialPointsFilteredOutInSouthDirection() throws IOException {
+        int[][] data = createFilledMatrix(0);
+        for (int i = 1; i <= 5; i++) {
+            data[i][1] = (6 - i) * 40;
+        }
+        ThresholdScanner thresholdScanner = ThresholdScanner.createScanner(Direction.S, HGT.create(SOME_COORDINATE, data));
+        Map<MatrixCoordinate, SlopeInfo> result = thresholdScanner.scan(20, 80, null);
+        assertEquals(1, result.size());
+        SlopeInfo slopeInfo = result.get(new MatrixCoordinate(0, 0));
         assertNotNull(slopeInfo);
         assertEquals(5 * 40, slopeInfo.getElevationGain());
     }

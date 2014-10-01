@@ -17,9 +17,9 @@ public class ThresholdScanner {
     private double cellLengthMeters;
 
     private ThresholdScanner(Direction dir, int[][] diffed, double cellLengthMeters) {
-        this.direction=dir;
-        this.diffed=diffed;
-        this.cellLengthMeters=cellLengthMeters;
+        this.direction = dir;
+        this.diffed = diffed;
+        this.cellLengthMeters = cellLengthMeters;
     }
 
     public static ThresholdScanner createScanner(Direction dir, HGT hgt) {
@@ -46,7 +46,7 @@ public class ThresholdScanner {
 
     private static long calcCellLengthForDirection(Direction dir, HGT hgt) {
         GeoCoordinate oppositePoint = hgt.getHeader().getCoordinate().shift(Math.abs(dir.getColShift()), Math.abs(dir.getRowShift()));
-        return distanceMeters(hgt.getHeader().getCoordinate(),oppositePoint) / (hgt.getHeader().getHeight() - 1);
+        return distanceMeters(hgt.getHeader().getCoordinate(), oppositePoint) / (hgt.getHeader().getHeight() - 1);
     }
 
 
@@ -63,47 +63,52 @@ public class ThresholdScanner {
                 heightSum = 0;
                 maxSlope = 0;
                 cellNum = 0;
-                lastCoordinate=null;
-                for (int i = 1; ; i++) {
+                lastCoordinate = null;
+                for (int i = 0; ; i++) {
                     int ri = r + direction.getRowShift() * i;
                     int ci = c + direction.getColShift() * i;
                     if (isInMatrix(ri, ci)) {
                         int pointHeight = diffed[ri][ci];
                         if (pointHeight != VOID_VALUE) {
-                            if (i == 1 || (heightSum + pointHeight) / i >= thresholdSteepness) {
+                            if (i == 0 || (heightSum + pointHeight) / (i+1) >= thresholdSteepness) {
                                 heightSum += pointHeight;
-                                maxSlope=Math.max(maxSlope, calcAngle(pointHeight, cellLengthMeters));
-                                cellNum=i;
-                                lastCoordinate = new MatrixCoordinate(ci + direction.getColShift(), ri + direction.getRowShift() );
+                                maxSlope = Math.max(maxSlope, calcAngle(pointHeight, cellLengthMeters));
+                                cellNum = i;
+                                lastCoordinate = new MatrixCoordinate(ci + direction.getColShift(), ri + direction.getRowShift());
                                 continue;
                             }
                         }
                     }
                     break;
                 }
-                if (heightSum >= threshold && (minMaxSlope==null || maxSlope>=minMaxSlope)) {
+                if (heightSum >= threshold && (minMaxSlope == null || maxSlope >= minMaxSlope)) {
 
-                    //put new coordinate only if previous in the same direction doesn't exist or is lower then new one
-                    MatrixCoordinate prevCoord = new MatrixCoordinate(c - Math.abs(direction.getColShift()),
-                            r - Math.abs(direction.getRowShift()));
-                    SlopeInfo prevValue = results.get(prevCoord);
-                    SlopeInfo newSlopeInfo = new SlopeInfo(calcAngle(heightSum, cellNum*cellLengthMeters), maxSlope, heightSum, lastCoordinate);
-                    if (prevValue!=null) {
-                        if (prevValue.getElevationGain()<heightSum) {
-                            results.remove(prevCoord);
-//                            System.out.println("removed for "+direction);
-                            results.put(new MatrixCoordinate(c, r), newSlopeInfo);
-                        }
-                    } else {
-                        results.put(new MatrixCoordinate(c, r), newSlopeInfo);
-                    }
+                    SlopeInfo newSlopeInfo = new SlopeInfo(calcAngle(heightSum, cellNum * cellLengthMeters), maxSlope,
+                            heightSum, lastCoordinate);
+                    results.put(new MatrixCoordinate(c, r), newSlopeInfo);
                 }
             }
+        filterOutSequentialPoints(results);
         return results;
     }
 
+    private void filterOutSequentialPoints(Map<MatrixCoordinate, SlopeInfo> coordinates) {
+        List<MatrixCoordinate> prevCoordinates = new ArrayList<>();
+        for (MatrixCoordinate coordinate : coordinates.keySet()) {
+            MatrixCoordinate prevCoord = new MatrixCoordinate(coordinate.x + direction.getColShift(),
+                    coordinate.y + direction.getRowShift());
+            SlopeInfo prevValue = coordinates.get(prevCoord);
+            if (prevValue != null && prevValue.getElevationGain() < coordinates.get(coordinate).getElevationGain()) {
+                prevCoordinates.add(prevCoord);
+            }
+        }
+        for (MatrixCoordinate matrixCoordinate : prevCoordinates) {
+            coordinates.remove(matrixCoordinate);
+        }
+    }
+
     private int calcAngle(int height, double distance) {
-        return (int)Math.round(Math.toDegrees(Math.atan(height/distance)));
+        return (int) Math.round(Math.toDegrees(Math.atan(height / distance)));
     }
 
     private boolean isInMatrix(int ri, int ci) {
