@@ -10,6 +10,7 @@
 mvn clean install
 
 **Usage:**
+
     java CmdLineApp [options...] <outputfile>
     -lat VAL             : Latitude value, e.g.: 47 or 45-47
     -lon VAL             : Longitude value, e.g.: 30 or 29-33
