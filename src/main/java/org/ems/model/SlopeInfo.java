@@ -7,13 +7,17 @@ public class SlopeInfo {
     private final int avg;
     private final int max;
     private final int elevationGain;
-    private final MatrixCoordinate firstPoint;
+    private final MatrixCoordinate lowPoint;
+    private final MatrixCoordinate highPoint;
+    private final Direction direction;
 
-    public SlopeInfo(int avg, int max, int elevationGain, MatrixCoordinate firstPoint) {
+    public SlopeInfo(Direction direction, MatrixCoordinate highPoint, int avg, int max, int elevationGain, MatrixCoordinate lowPoint ) {
         this.avg = avg;
         this.max = max;
         this.elevationGain = elevationGain;
-        this.firstPoint = firstPoint;
+        this.lowPoint = lowPoint;
+        this.highPoint = highPoint;
+        this.direction = direction;
     }
 
     public int getAvg() {
@@ -28,7 +32,15 @@ public class SlopeInfo {
         return elevationGain;
     }
 
-    public MatrixCoordinate getFirstPoint() {
-        return firstPoint;
+    public MatrixCoordinate getLowPoint() {
+        return lowPoint;
+    }
+
+    public MatrixCoordinate getHighPoint() {
+        return highPoint;
+    }
+
+    public Direction getDirection() {
+        return direction;
     }
 }

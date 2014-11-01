@@ -1,9 +1,5 @@
 package org.ems.scanners;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Map;
-
 import junit.framework.TestCase;
 import org.ems.model.Direction;
 import org.ems.model.GeoCoordinate;
@@ -11,6 +7,10 @@ import org.ems.model.MatrixCoordinate;
 import org.ems.model.SlopeInfo;
 import org.ems.model.hgt.HGT;
 import org.junit.Test;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
 
 public class ThresholdScannerTest extends TestCase {
 
@@ -39,11 +39,20 @@ public class ThresholdScannerTest extends TestCase {
             data[i][1] = i * 40;
         }
         ThresholdScanner thresholdScanner = ThresholdScanner.createScanner(Direction.N, HGT.create(SOME_COORDINATE, data));
-        Map<MatrixCoordinate, SlopeInfo> result = thresholdScanner.scan(20, 100, null);
+        Collection<SlopeInfo> result = thresholdScanner.scan(20, 100, null);
         assertEquals(1, result.size());
-        SlopeInfo slopeInfo = result.get(new MatrixCoordinate(0, 4));
+        SlopeInfo slopeInfo = findSlopeInfo(result, new MatrixCoordinate(0, 4));
         assertNotNull(slopeInfo);
         assertEquals(5 * 40, slopeInfo.getElevationGain());
+    }
+
+    private SlopeInfo findSlopeInfo(Collection<SlopeInfo> slopeInfos, MatrixCoordinate matrixCoordinate) {
+        for (SlopeInfo slopeInfo : slopeInfos) {
+            if (slopeInfo.getHighPoint().equals(matrixCoordinate)) {
+                return slopeInfo;
+            }
+        }
+        return null;
     }
 
     @Test
@@ -53,9 +62,9 @@ public class ThresholdScannerTest extends TestCase {
             data[i][1] = (6 - i) * 40;
         }
         ThresholdScanner thresholdScanner = ThresholdScanner.createScanner(Direction.S, HGT.create(SOME_COORDINATE, data));
-        Map<MatrixCoordinate, SlopeInfo> result = thresholdScanner.scan(20, 80, null);
+        Collection<SlopeInfo> result = thresholdScanner.scan(20, 80, null);
         assertEquals(1, result.size());
-        SlopeInfo slopeInfo = result.get(new MatrixCoordinate(0, 0));
+        SlopeInfo slopeInfo = findSlopeInfo(result, new MatrixCoordinate(0, 0));
         assertNotNull(slopeInfo);
         assertEquals(5 * 40, slopeInfo.getElevationGain());
     }

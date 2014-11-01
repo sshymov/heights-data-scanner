@@ -1,11 +1,11 @@
 package org.ems.model;
 
-import org.ems.visualize.PngBuilder;
+import org.ems.clusterization.MeasurableDistance;
 
 /**
 * Created by stas on 6/22/14.
 */
-public class MatrixCoordinate {
+public class MatrixCoordinate implements MeasurableDistance<MatrixCoordinate> {
     public int x,y;
 
     public MatrixCoordinate(int x, int y) {
@@ -39,5 +39,10 @@ public class MatrixCoordinate {
         int result = x;
         result = 31 * result + y;
         return result;
+    }
+
+    @Override
+    public double distanceTo(MatrixCoordinate other) {
+        return Math.sqrt((x-other.x)*(x-other.x)+(y-other.y)*(y-other.y));
     }
 }

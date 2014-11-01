@@ -1,17 +1,17 @@
 package org.ems;
 
 import java.io.IOException;
-import java.util.Map;
+import java.util.Collection;
 
 import com.google.common.base.Function;
 import org.apache.commons.compress.compressors.CompressorException;
 import org.ems.model.*;
 import org.ems.model.hgt.HGT;
 import org.ems.scanners.ThresholdScanner;
+import org.ems.service.ClusterService;
 import org.ems.service.DataStorage;
 import org.ems.visualize.KmlBuilder;
 import org.ems.visualize.OutputFormatBuilder;
-import org.ems.visualize.PngBuilder;
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
@@ -34,8 +34,6 @@ public class CmdLineApp {
     private String latitude;
     @Option(name = "-lon", required = true, usage = "Longitude value, e.g.: 30 or 29-33")
     private String longitude;
-    @Option(name = "-format", required = false, usage = "[optional] Output format, KML is default")
-    private OutputFormat format = OutputFormat.KML;
     @Option(name = "-min-avr-steepness", usage = "Minimal average slope in degrees from horizontal, e.g. 20")
     private int minAvrSlope;
     @Option(name = "-min-max-steepness", required = false, usage = "[optional] Minimal maximal slope of a segment in degrees from horizontal, e.g. 20")
@@ -59,12 +57,8 @@ public class CmdLineApp {
             System.exit(1);
         }
 
-        OutputFormatBuilder outputFormatBuilder;
-        if (app.format == OutputFormat.KML) {
-            outputFormatBuilder = new KmlBuilder(String.format("Scan for minAvrSlope=%d and minHeight=%d", app.minAvrSlope, app.minHeight), app.outputFileName);
-        } else {
-            outputFormatBuilder = new PngBuilder(app.outputFileName);
-        }
+        OutputFormatBuilder outputFormatBuilder = new KmlBuilder(String.format("Scan for minAvrSlope=%d , minMaxSlope=%d, minHeight=%d",
+                app.minAvrSlope, app.minMaxSlope, app.minHeight), app.outputFileName);
 
         Range<Integer> latRange = parseRange(app.latitude);
         Range<Integer> lonRange = parseRange(app.longitude);
@@ -106,10 +100,14 @@ public class CmdLineApp {
         outputFormatBuilder.startCoordinate(hgt, converter);
 
         System.out.print("Scanning...");
+        ClusterService clusterService=new ClusterService();
         for (Direction direction : Direction.values()) {
             ThresholdScanner scanner = ThresholdScanner.createScanner(direction, hgt);
-            Map<MatrixCoordinate, SlopeInfo> scanResults = scanner.scan(app.minAvrSlope, app.minHeight, app.minMaxSlope);
-            outputFormatBuilder.addDirection(direction, scanResults);
+            Collection<SlopeInfo> scanResults = scanner.scan(app.minAvrSlope, app.minHeight, app.minMaxSlope);
+            clusterService.addDirectionPoints(scanResults);
+        }
+        for (Cluster cluster : clusterService.buildClusters()) {
+            outputFormatBuilder.addCluster(cluster);
         }
         outputFormatBuilder.endCoordinate();
 
@@ -119,7 +117,6 @@ public class CmdLineApp {
 
     private static Function<MatrixCoordinate, ?> getMatrixCoordinateFunction(CmdLineApp app, final HGT hgt) {
         Function<MatrixCoordinate, ?> converter;
-        if (app.format == OutputFormat.KML) {
             converter = new Function<MatrixCoordinate, GeoCoordinate>() {
 
                 @Override
@@ -128,15 +125,6 @@ public class CmdLineApp {
                 }
             };
 
-        } else {
-            converter = new Function<MatrixCoordinate, MatrixCoordinate>() {
-
-                @Override
-                public MatrixCoordinate apply(MatrixCoordinate matrixCoordinate) {
-                    return matrixCoordinate;
-                }
-            };
-        }
         return converter;
     }
 

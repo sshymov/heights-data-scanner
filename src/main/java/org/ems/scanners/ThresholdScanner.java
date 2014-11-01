@@ -1,6 +1,9 @@
 package org.ems.scanners;
 
-import org.ems.model.*;
+import org.ems.model.Direction;
+import org.ems.model.GeoCoordinate;
+import org.ems.model.MatrixCoordinate;
+import org.ems.model.SlopeInfo;
 import org.ems.model.hgt.HGT;
 
 import java.util.*;
@@ -50,7 +53,7 @@ public class ThresholdScanner {
     }
 
 
-    public Map<MatrixCoordinate, SlopeInfo> scan(int minSteepnessAngle, int threshold, Integer minMaxSlope) {
+    public Collection<SlopeInfo> scan(int minSteepnessAngle, int threshold, Integer minMaxSlope) {
         double thresholdSteepness = Math.tan(Math.toRadians(minSteepnessAngle)) * cellLengthMeters;
 
         Map<MatrixCoordinate, SlopeInfo> results = new HashMap<>();
@@ -70,10 +73,10 @@ public class ThresholdScanner {
                     if (isInMatrix(ri, ci)) {
                         int pointHeight = diffed[ri][ci];
                         if (pointHeight != VOID_VALUE) {
-                            if (i == 0 || (heightSum + pointHeight) / (i+1) >= thresholdSteepness) {
+                            if (i == 0 || (heightSum + pointHeight) / (i + 1) >= thresholdSteepness) {
                                 heightSum += pointHeight;
                                 maxSlope = Math.max(maxSlope, calcAngle(pointHeight, cellLengthMeters));
-                                cellNum = i;
+                                cellNum = i + 1;
                                 lastCoordinate = new MatrixCoordinate(ci + direction.getColShift(), ri + direction.getRowShift());
                                 continue;
                             }
@@ -83,13 +86,15 @@ public class ThresholdScanner {
                 }
                 if (heightSum >= threshold && (minMaxSlope == null || maxSlope >= minMaxSlope)) {
 
-                    SlopeInfo newSlopeInfo = new SlopeInfo(calcAngle(heightSum, cellNum * cellLengthMeters), maxSlope,
+                    MatrixCoordinate highPoint = new MatrixCoordinate(c - direction.getColShift(), r - direction.getRowShift());
+                    SlopeInfo newSlopeInfo = new SlopeInfo(direction, highPoint,
+                            calcAngle(heightSum, cellNum * cellLengthMeters), maxSlope,
                             heightSum, lastCoordinate);
-                    results.put(new MatrixCoordinate(c, r), newSlopeInfo);
+                    results.put(highPoint, newSlopeInfo);
                 }
             }
         filterOutSequentialPoints(results);
-        return results;
+        return results.values();
     }
 
     private void filterOutSequentialPoints(Map<MatrixCoordinate, SlopeInfo> coordinates) {
