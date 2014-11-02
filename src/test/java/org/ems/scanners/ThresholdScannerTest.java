@@ -41,7 +41,7 @@ public class ThresholdScannerTest extends TestCase {
         ThresholdScanner thresholdScanner = ThresholdScanner.createScanner(Direction.N, HGT.create(SOME_COORDINATE, data));
         Collection<SlopeInfo> result = thresholdScanner.scan(20, 100, null);
         assertEquals(1, result.size());
-        SlopeInfo slopeInfo = findSlopeInfo(result, new MatrixCoordinate(0, 4));
+        SlopeInfo slopeInfo = findSlopeInfo(result, new MatrixCoordinate(0, 5));
         assertNotNull(slopeInfo);
         assertEquals(5 * 40, slopeInfo.getElevationGain());
     }
@@ -58,8 +58,8 @@ public class ThresholdScannerTest extends TestCase {
     @Test
     public void testSequentialPointsFilteredOutInSouthDirection() throws IOException {
         int[][] data = createFilledMatrix(0);
-        for (int i = 1; i <= 5; i++) {
-            data[i][1] = (6 - i) * 40;
+        for (int i = 2; i <= 6; i++) {
+            data[i][1] = (7 - i) * 40;
         }
         ThresholdScanner thresholdScanner = ThresholdScanner.createScanner(Direction.S, HGT.create(SOME_COORDINATE, data));
         Collection<SlopeInfo> result = thresholdScanner.scan(20, 80, null);
