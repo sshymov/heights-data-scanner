@@ -5,6 +5,10 @@
 - Output scan results in a KML format for easy browsing
 - Auto-download of data specified by coordinate range
 
+**Download Release Version**
+
+https://github.com/sshymov/heights-data-scanner/releases/download/1.0/heightsMapScanner.zip
+
 **Building:**
 
 mvn clean install
@@ -23,7 +27,7 @@ mvn clean install
 
 **Usage Example:**
 
-target/heightsMapScanner/bin/heightsMapScanner -lat 45-48 -lon 29-31 -min-avr-steepness 15 -min-height 45 -min-max-steepness 17 output.kml
+heightsMapScanner/bin/heightsMapScanner -lat 45-48 -lon 29-31 -min-avr-steepness 15 -min-height 45 -min-max-steepness 17 output.kml
 
 
 (C) Stanislav Shymov
