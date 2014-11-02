@@ -52,6 +52,7 @@
                     </programs>
                     <platforms>
                         <platform>unix</platform>
+                        <platform>windows</platform>
                     </platforms>
                     <assembleDirectory>${project.build.directory}/${project.artifactId}</assembleDirectory>
                     <repositoryName>lib</repositoryName>
