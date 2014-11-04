@@ -19,7 +19,7 @@ public class CsvBuilder implements OutputFormatBuilder<MatrixCoordinate> {
     private long clusterCounter;
 
     public CsvBuilder(String outputName) throws IOException {
-        writer = new CSVWriter(new FileWriter(outputName.endsWith(".kml") ? outputName : outputName + ".kml"));
+        writer = new CSVWriter(new FileWriter(outputName.endsWith(".csv") ? outputName : outputName + ".csv"));
         writer.writeNext(new String[] {"direction", "high_point", "low_point", "cluster_id", "avr_slope", "max_slope", "elevation_gain"});
     }
 
