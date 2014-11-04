@@ -14,9 +14,9 @@ public interface OutputFormatBuilder<T> {
 
     void build() throws IOException;
 
-    void startCoordinate(HGT coordinate, Function<MatrixCoordinate, T> converter);
+    void startCoordinate(HGT coordinate) throws IOException;
 
-    void endCoordinate();
+    void endCoordinate() throws IOException;
 
-    void addCluster(Cluster cluster);
+    void addCluster(Cluster cluster) throws IOException;
 }

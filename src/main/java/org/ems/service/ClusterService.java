@@ -19,7 +19,7 @@ public class ClusterService {
             return o2.getSize() - o1.getSize();
         }
     };
-    private Collection<SlopeInfo> data = new ArrayList<>();
+    private Collection<SlopeInfo> data = new LinkedList<>();
 
     public void addDirectionPoints(Collection<SlopeInfo> scanResults) {
         data.addAll(scanResults);
@@ -34,9 +34,8 @@ public class ClusterService {
         }
 
         //TODO: adjustable CLUSTER_AREA
-        List<List<MatrixCoordinate>> pointClusters = ClusterizationUtil.clusterize(new ArrayList<>(coordinates), CLUSTER_AREA);
-
-        for (List<MatrixCoordinate> clusterCoordinates : pointClusters) {
+        List<Set<MatrixCoordinate>> pointClusters = ClusterizationUtil.clusterize(new ArrayList<>(coordinates), CLUSTER_AREA);
+        for (Set<MatrixCoordinate> clusterCoordinates : pointClusters) {
             Cluster cluster = new Cluster();
             clusters.add(cluster);
             for (Iterator<SlopeInfo> it = data.iterator(); it.hasNext() ; ) {

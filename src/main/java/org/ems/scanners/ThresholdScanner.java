@@ -61,7 +61,7 @@ public class ThresholdScanner {
         int cellNum;
         int maxSlope;
         MatrixCoordinate lastCoordinate;
-        for (int r = 0; r < diffed.length; r++)
+        for (int r = 0; r < diffed.length; r++) {
             for (int c = 0; c < diffed[0].length; c++) {
                 heightSum = 0;
                 maxSlope = 0;
@@ -93,6 +93,7 @@ public class ThresholdScanner {
                     results.put(highPoint, newSlopeInfo);
                 }
             }
+        }
         filterOutSequentialPoints(results);
         return results.values();
     }

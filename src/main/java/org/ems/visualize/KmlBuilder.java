@@ -1,12 +1,13 @@
 package org.ems.visualize;
 
-import com.google.common.base.Function;
+import org.apache.commons.compress.utils.IOUtils;
 import org.ems.model.*;
 import org.ems.model.hgt.HGT;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.io.Writer;
 import java.util.List;
 import java.util.Map;
 
@@ -14,51 +15,51 @@ import java.util.Map;
  * Created by stas on 6/11/14.
  */
 public class KmlBuilder implements OutputFormatBuilder<GeoCoordinate> {
-    private final String outputName;
-    private StringBuilder stringBuilder = new StringBuilder();
-    private Function<MatrixCoordinate, GeoCoordinate> converter;
+    private Writer writer;
+    private HGT hgt;
 
-    public KmlBuilder(String title, String outputName) {
-        this.outputName = outputName;
+    public KmlBuilder(String title, String outputName) throws IOException {
+            writer = new BufferedWriter(new FileWriter(outputName.endsWith(".kml") ? outputName : outputName + ".kml"));
 
-        stringBuilder.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-                "<kml xmlns=\"http://www.opengis.net/kml/2.2\">\n" +
-                "  <Document>\n" +
-                "    <name>" + title + "</name>\n" +
-                "    <open>1</open>\n" +
-                "      \n"
-        );
-        for (Direction direction : Direction.values()) {
-            stringBuilder.append("    <Style id=\"line" + direction.name() + "\">\n" +
-                    "      <LineStyle>\n" +
-                    "        <color>" + direction.getRgbColor().toKml() + "</color>\n" +
-                    "        <width>4</width>\n" +
-                    "      </LineStyle>\n" +
-                    "      <PolyStyle>\n" +
-                    "        <color>7f7f7f7f</color>\n" +
-                    "      </PolyStyle>\n" +
-                    "    </Style>\n");
-        }
+
+            writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                    "<kml xmlns=\"http://www.opengis.net/kml/2.2\">\n" +
+                    "  <Document>\n" +
+                    "    <name>" + title + "</name>\n" +
+                    "    <open>1</open>\n" +
+                    "      \n"
+            );
+            for (Direction direction : Direction.values()) {
+                writer.append("    <Style id=\"line" + direction.name() + "\">\n" +
+                        "      <LineStyle>\n" +
+                        "        <color>" + direction.getRgbColor().toKml() + "</color>\n" +
+                        "        <width>4</width>\n" +
+                        "      </LineStyle>\n" +
+                        "      <PolyStyle>\n" +
+                        "        <color>7f7f7f7f</color>\n" +
+                        "      </PolyStyle>\n" +
+                        "    </Style>\n");
+            }
     }
 
     @Override
-    public void addCluster(Cluster cluster) {
+    public void addCluster(Cluster cluster) throws IOException {
 
         Map<Direction, List<SlopeInfo>> directionsMap = cluster.getDirectionCoordinates();
-        stringBuilder.append("<Folder>\n" +
+        writer.write("<Folder>\n" +
                 "<name>");
         for (Map.Entry<Direction, List<SlopeInfo>> entry : directionsMap.entrySet()) {
-            stringBuilder.append(entry.getKey().name() + "(" + entry.getValue().size() + ")");
+            writer.write(entry.getKey().name() + "(" + entry.getValue().size() + ")");
         }
-        stringBuilder.append("</name>\n" +
+        writer.write("</name>\n" +
                 "<visibility>1</visibility>");
         for (Map.Entry<Direction, List<SlopeInfo>> dirCoordinates : directionsMap.entrySet()) {
             Direction direction = dirCoordinates.getKey();
-            stringBuilder.append("<Folder>\n" +
+            writer.write("<Folder>\n" +
                     "<name>" + direction.getTitle() + "</name>\n" +
                     "<visibility>0</visibility>");
             for (SlopeInfo entry : dirCoordinates.getValue()) {
-                stringBuilder.append("\n      <Placemark>\n" +
+                writer.write("\n      <Placemark>\n" +
                         "        <name>" + direction.name() + ", " + entry.getElevationGain()
                         + "m, Avr=" + entry.getAvg()
                         + "°, Max=" + entry.getMax() + "°</name>\n" +
@@ -71,36 +72,42 @@ public class KmlBuilder implements OutputFormatBuilder<GeoCoordinate> {
                         "          <extrude>1</extrude>\n" +
                         "          <tessellate>1</tessellate>\n" +
                         "          <altitudeMode>relativeToGround</altitudeMode>\n" +
-                        "          <coordinates> " + converter.apply(entry.getLowPoint()).toDigitsString() + "," + entry.getElevationGain() + "\n" +
-                        "            " + converter.apply(entry.getHighPoint()).toDigitsString() + ",0 </coordinates>\n" +
+                        "          <coordinates> " + toGeo(entry.getLowPoint()).toDigitsString() + "," + entry.getElevationGain() + "\n" +
+                        "            " + toGeo(entry.getHighPoint()).toDigitsString() + ",0 </coordinates>\n" +
                         "        </LineString>\n" +
                         "      </Placemark>");
             }
-            stringBuilder.append("</Folder>");
+            writer.write("</Folder>");
         }
-        stringBuilder.append("</Folder>");
+        writer.write("</Folder>");
+
+    }
+
+    private GeoCoordinate toGeo(MatrixCoordinate matrixCoordinate) {
+        return hgt.calcCoordinateForCell(matrixCoordinate.x, matrixCoordinate.y);
     }
 
     @Override
     public void build() throws IOException {
-        stringBuilder.append("  </Document>\n" +
-                "</kml>");
-        Files.write(Paths.get(outputName.endsWith(".kml") ? outputName : outputName + ".kml"),
-                stringBuilder.toString().getBytes());
+        try {
+            writer.append("  </Document>\n" +
+                    "</kml>");
+        } finally {
+            IOUtils.closeQuietly(writer);
+        }
     }
 
     @Override
-    public void startCoordinate(HGT coordinate, Function<MatrixCoordinate, GeoCoordinate> converter) {
-        this.converter = converter;
-        stringBuilder.append("<Folder>\n" +
+    public void startCoordinate(HGT coordinate) throws IOException {
+        this.hgt = coordinate;
+        writer.write("<Folder>\n" +
                 "<name>" + coordinate.getHeader().getCoordinate() + "</name>\n" +
                 "<visibility>1</visibility>");
 
     }
 
     @Override
-    public void endCoordinate() {
-        stringBuilder.append("</Folder>");
-
+    public void endCoordinate() throws IOException {
+        writer.write("</Folder>");
     }
 }
