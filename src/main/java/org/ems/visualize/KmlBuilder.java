@@ -102,7 +102,7 @@ public class KmlBuilder implements OutputFormatBuilder<GeoCoordinate> {
         this.hgt = coordinate;
         writer.write("<Folder>\n" +
                 "<name>" + coordinate.getHeader().getCoordinate() + "</name>\n" +
-                "<visibility>1</visibility>");
+                "<visibility>0</visibility>");
 
     }
 

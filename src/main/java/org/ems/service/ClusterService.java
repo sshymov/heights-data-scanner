@@ -11,7 +11,7 @@ import java.util.*;
  * Created by stas on 10/16/14.
  */
 public class ClusterService {
-    public static final double CLUSTER_AREA = 4;
+    public static final double CLUSTER_AREA = 10;
 
     public static final Comparator<Cluster> CLUSTER_SIZE_COMPARATOR = new Comparator<Cluster>() {
         @Override

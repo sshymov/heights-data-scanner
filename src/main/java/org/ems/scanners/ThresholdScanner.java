@@ -114,7 +114,7 @@ public class ThresholdScanner {
     }
 
     private int calcAngle(int height, double distance) {
-        return (int) Math.round(Math.toDegrees(Math.atan(height / distance)));
+        return (int)(Math.toDegrees(Math.atan(height / distance)));
     }
 
     private boolean isInMatrix(int ri, int ci) {

@@ -69,6 +69,22 @@ public class ThresholdScannerTest extends TestCase {
         assertEquals(5 * 40, slopeInfo.getElevationGain());
     }
 
+    @Test
+    public void testScanResultSameAfterRescan() throws IOException {
+        int[][] data = createFilledMatrix(0);
+        for (int i = 2; i <= 6; i++) {
+            data[i][1] = (7 - i) * 40;
+        }
+        ThresholdScanner thresholdScanner = ThresholdScanner.createScanner(Direction.S, HGT.create(SOME_COORDINATE, data));
+        Collection<SlopeInfo> result = thresholdScanner.scan(20, 80, null);
+        assertEquals(1, result.size());
+        SlopeInfo slopeInfo = findSlopeInfo(result, new MatrixCoordinate(0, 0));
+        assertNotNull(slopeInfo);
+        Collection<SlopeInfo> resultRescanned = thresholdScanner.scan(slopeInfo.getAvg(), slopeInfo.getElevationGain(), slopeInfo.getMax());
+        assertEquals(1, resultRescanned.size());
+    }
+
+
     public int[][] createFilledMatrix(int value) {
         int[][] data = new int[1201][];
         int[] row = new int[1201];
