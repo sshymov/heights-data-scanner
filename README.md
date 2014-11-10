@@ -4,6 +4,7 @@
 
 - Output scan results in a KML format for easy browsing
 - Auto-download of data specified by coordinate range
+- Export to CSV
 
 **Download Release Version**
 
@@ -16,6 +17,7 @@ mvn clean install
 **Usage:**
 
     java CmdLineApp [options...] <outputfile>
+    -format [KML | CSV]  : [optional] Output format can KML or CSV, KML is default
     -lat VAL             : Latitude value, e.g.: 47 or 45-47
     -lon VAL             : Longitude value, e.g.: 30 or 29-33
     -min-avr-steepness N : Minimal average slope in degrees from horizontal, e.g.
@@ -30,5 +32,5 @@ mvn clean install
 heightsMapScanner/bin/heightsMapScanner -lat 45-48 -lon 29-31 -min-avr-steepness 15 -min-height 45 -min-max-steepness 17 output.kml
 
 
-(C) Stanislav Shymov
+2014 (C) Stanislav Shymov
 shtas{at}yandex{dot}ua

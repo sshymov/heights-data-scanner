@@ -16,6 +16,12 @@ public class GeoCoordinateTest {
         Assert.assertEquals(coordinate2.shift(1.0, 1.0).toString(), "W146.0,S29.0");
     }
 
+    @Test
+    public void testCoordinateRound() {
+        GeoCoordinate coordinate = new GeoCoordinate(new Longitude(47.1234567), new Latitude(30.1234567));
+        Assert.assertEquals("E47.12346,N30.12346", coordinate.toString());
+    }
+
     @Test(expected = IllegalArgumentException.class)
     public void testIllegalLon() {
         new GeoCoordinate(new Longitude(181.0), new Latitude(30.0));

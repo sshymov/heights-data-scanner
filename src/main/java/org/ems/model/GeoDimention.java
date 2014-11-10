@@ -54,6 +54,7 @@ public abstract class GeoDimention {
     }
 
     public String toString() {
-        return getHemisphereAsString() + String.valueOf(value.abs().setScale(5, RoundingMode.HALF_UP));
+        return getHemisphereAsString() +
+                String.valueOf(value.abs().setScale(value.scale()<5?value.scale():5, RoundingMode.HALF_UP));
     }
 }
