@@ -66,7 +66,8 @@ public class KmlBuilder implements OutputFormatBuilder<GeoCoordinate> {
                         "        <visibility>1</visibility>\n" +
                         "        <description>" + direction.getTitle() + ", Elevation Gain: " + entry.getElevationGain() +
                         "m,\n Average Slope: " + entry.getAvg() +
-                        "°,\n Maximum Slope: " + entry.getMax() + "°</description>" +
+                        "°,\n Maximum Slope: " + entry.getMax() + "°" +
+                        "°,\n Start: " + toGeo(entry.getHighPoint()).toString() + "</description>" +
                         "        <styleUrl>#line" + direction.name() + "</styleUrl>\n" +
                         "        <LineString>\n" +
                         "          <extrude>1</extrude>\n" +

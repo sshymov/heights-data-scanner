@@ -1,6 +1,8 @@
 package org.ems.model;
 
 import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 
 /**
  * User: Stas Shimov <stas.shimov@gmail.com>
@@ -52,6 +54,6 @@ public abstract class GeoDimention {
     }
 
     public String toString() {
-        return getHemisphereAsString() + String.valueOf(value.abs());
+        return getHemisphereAsString() + String.valueOf(value.abs().setScale(5, RoundingMode.HALF_UP));
     }
 }
