@@ -8,7 +8,7 @@
 
 **Download Release Version**
 
-https://github.com/sshymov/heights-data-scanner/releases/download/1.0/heightsMapScanner-1.0.zip
+https://github.com/sshymov/heights-data-scanner/releases/download/1.1/heightsMapScanner-1.1.zip
 
 **Building:**
 
